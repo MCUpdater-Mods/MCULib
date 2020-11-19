@@ -1,0 +1,11 @@
+modLoader="javafml"
+loaderVersion="[32,)"
+license="Apache License 2.0"
+[[mods]]
+modId="mculib"
+version="${version}"
+displayName="MCULib"
+authors="smbarbour"
+description='''
+A library of shared functionality for mods
+'''
