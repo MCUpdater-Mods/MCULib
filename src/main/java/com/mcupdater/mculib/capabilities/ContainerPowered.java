@@ -1,24 +1,25 @@
 package com.mcupdater.mculib.capabilities;
 
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.util.IntReferenceHolder;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.DataSlot;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.energy.EnergyStorage;
 import net.minecraftforge.energy.IEnergyStorage;
 
-public abstract class ContainerPowered extends Container {
+public abstract class ContainerPowered extends AbstractContainerMenu {
     protected TileEntityPowered tileEntity;
 
-    protected ContainerPowered(ContainerType<?> type, int id) {
+    protected ContainerPowered(MenuType<?> type, int id) {
         super(type, id);
     }
 
     protected void trackPower() {
         if (tileEntity != null) {
-            trackInt(new IntReferenceHolder() {
+            addDataSlot(new DataSlot() {
                 @Override
                 public int get() {
-                    return getEnergy() & 0xffff;
+                    return getEnergy();
                 }
 
                 @Override
@@ -29,7 +30,7 @@ public abstract class ContainerPowered extends Container {
                     });
                 }
             });
-            trackInt(new IntReferenceHolder() {
+            addDataSlot(new DataSlot() {
                 @Override
                 public int get() {
                     return (getEnergy() >> 16) & 0xffff;

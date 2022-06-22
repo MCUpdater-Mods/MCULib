@@ -1,12 +1,12 @@
 package com.mcupdater.mculib.helpers;
 
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.ISidedInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.Container;
+import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.EmptyHandler;
@@ -39,22 +39,22 @@ public class InventoryHelper {
         return toInsert;
     }
 
-    public static IItemHandler getWrapper(TileEntity tileEntity, Direction side) {
+    public static IItemHandler getWrapper(BlockEntity tileEntity, Direction side) {
         if (tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).isPresent()) {
             return tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).orElse(EmptyHandler.INSTANCE);
-        } else if (tileEntity instanceof ISidedInventory) {
-            return new SidedInvWrapper((ISidedInventory) tileEntity, side);
-        } else if (tileEntity instanceof IInventory) {
-            return new InvWrapper((IInventory) tileEntity);
+        } else if (tileEntity instanceof WorldlyContainer) {
+            return new SidedInvWrapper((WorldlyContainer) tileEntity, side);
+        } else if (tileEntity instanceof Container) {
+            return new InvWrapper((Container) tileEntity);
         }
         return EmptyHandler.INSTANCE;
     }
 
-    public static boolean addToPriorityInventory(World world, BlockPos pos, ItemStack stack, List<Direction> sides) {
-        //List<EnumFacing> sides = getSideList(pos, ((TileRecon)world.getTileEntity(pos)).getOrientation());
+    public static boolean addToPriorityInventory(Level level, BlockPos pos, ItemStack stack, List<Direction> sides) {
+        //List<EnumFacing> sides = getSideList(pos, ((TileRecon)level.getBlockEntity(pos)).getOrientation());
         for (Direction side : sides) {
-            TileEntity target;
-            target = world.getTileEntity(pos.offset(side));
+            BlockEntity target;
+            target = level.getBlockEntity(pos.relative(side));
             if (target != null) {
                 IItemHandler invOutput = getWrapper(target, side.getOpposite());
                 if (invOutput != EmptyHandler.INSTANCE) {
@@ -74,9 +74,9 @@ public class InventoryHelper {
     public static boolean canStacksMerge(ItemStack stack1, ItemStack stack2) {
         if (stack1 == null || stack2 == null)
             return false;
-        if (!stack1.isItemEqual(stack2))
+        if (!stack1.sameItem(stack2))
             return false;
-        if (!ItemStack.areItemStackTagsEqual(stack1, stack2))
+        if (!ItemStack.tagMatches(stack1, stack2))
             return false;
         return true;
 

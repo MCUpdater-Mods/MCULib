@@ -1,7 +1,7 @@
 package com.mcupdater.mculib.inventory;
 
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
@@ -9,9 +9,9 @@ import javax.annotation.Nonnull;
 
 public class PlayerBypassItemHandler implements IItemHandlerModifiable {
     private IItemHandlerModifiable normalHandler;
-    private IInventory sourceInventory;
+    private Container sourceInventory;
 
-    public PlayerBypassItemHandler(IItemHandler h, IInventory sourceInventory) {
+    public PlayerBypassItemHandler(IItemHandler h, Container sourceInventory) {
         if (!(h instanceof IItemHandlerModifiable)) {
             this.normalHandler = (IItemHandlerModifiable) h;
         } else {
@@ -51,7 +51,7 @@ public class PlayerBypassItemHandler implements IItemHandlerModifiable {
 
                 @Override
                 public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
-                    sourceInventory.setInventorySlotContents(slot, stack);
+                    sourceInventory.setItem(slot, stack);
                 }
             };
         }
@@ -102,8 +102,8 @@ public class PlayerBypassItemHandler implements IItemHandlerModifiable {
         else
         {
             int m = Math.min(stackInSlot.getCount(), amount);
-            ItemStack ret = sourceInventory.decrStackSize(slot, m);
-            sourceInventory.markDirty();
+            ItemStack ret = sourceInventory.removeItem(slot, m);
+            sourceInventory.setChanged();
             return ret;
         }    }
 
