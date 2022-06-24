@@ -19,12 +19,12 @@ import java.util.List;
 
 public abstract class TileEntityPowered extends BlockEntity {
 
-    protected EnergyStorage energyStorage;
+    protected SerializedEnergyStorage energyStorage;
     protected LazyOptional<IEnergyStorage> energyHandler = LazyOptional.of(() -> energyStorage);
 
     public TileEntityPowered(BlockEntityType<?> tileEntity, BlockPos blockPos, BlockState blockState, int capacity, int maxTransfer) {
         super(tileEntity, blockPos, blockState);
-        this.energyStorage = new EnergyStorage(capacity, maxTransfer);
+        this.energyStorage = new SerializedEnergyStorage(capacity, maxTransfer);
     }
 
     @Override

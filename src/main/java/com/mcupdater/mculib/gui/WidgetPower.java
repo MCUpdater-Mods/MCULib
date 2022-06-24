@@ -1,6 +1,7 @@
 package com.mcupdater.mculib.gui;
 
 import com.mcupdater.mculib.MCULib;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -42,7 +43,7 @@ public class WidgetPower extends AbstractWidget {
 
         //fill Gauge
         Minecraft minecraft = Minecraft.getInstance();
-        minecraft.getTextureManager().bindForSetup(ENERGY);
+        RenderSystem.setShaderTexture(0, ENERGY);
         int energyOffset;
         int transform = (int) minecraft.level.getLevelData().getGameTime() % 256;
         switch(orientation) {
