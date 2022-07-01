@@ -76,6 +76,7 @@ public class WidgetPower extends AbstractWidget {
 
     @Override
     public void updateNarration(NarrationElementOutput p_169152_) {
+
     }
 
     public enum Orientation {
