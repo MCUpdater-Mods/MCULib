@@ -4,11 +4,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.energy.CapabilityEnergy;
-import net.minecraftforge.energy.EnergyStorage;
 import net.minecraftforge.energy.IEnergyStorage;
 
 public abstract class ContainerPowered extends AbstractContainerMenu {
-    protected TileEntityPowered tileEntity;
+    protected PoweredBlockEntity tileEntity;
 
     protected ContainerPowered(MenuType<?> type, int id) {
         super(type, id);

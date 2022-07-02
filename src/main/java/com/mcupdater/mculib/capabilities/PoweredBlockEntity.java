@@ -17,7 +17,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class TileEntityPowered extends BlockEntity {
+public abstract class PoweredBlockEntity extends BlockEntity {
     public enum ReceiveMode {ACCEPTS,NOT_SHARED,NO_RECEIVE}
     public enum SendMode {SHARE,SEND_ALL,NO_SEND}
 
@@ -27,11 +27,11 @@ public abstract class TileEntityPowered extends BlockEntity {
     protected ReceiveMode receiveMode;
     protected SendMode sendMode;
 
-    public TileEntityPowered(BlockEntityType<?> tileEntity, BlockPos blockPos, BlockState blockState, int capacity, int maxTransfer) {
+    public PoweredBlockEntity(BlockEntityType<?> tileEntity, BlockPos blockPos, BlockState blockState, int capacity, int maxTransfer) {
         this(tileEntity,blockPos,blockState,capacity,maxTransfer,ReceiveMode.ACCEPTS,SendMode.SHARE);
     }
 
-    public TileEntityPowered(BlockEntityType<?> tileEntity, BlockPos blockPos, BlockState blockState, int capacity, int maxTransfer, ReceiveMode receive, SendMode send) {
+    public PoweredBlockEntity(BlockEntityType<?> tileEntity, BlockPos blockPos, BlockState blockState, int capacity, int maxTransfer, ReceiveMode receive, SendMode send) {
         super(tileEntity, blockPos, blockState);
         this.energyStorage = new SerializedEnergyStorage(capacity, maxTransfer);
         this.receiveMode = receive;
@@ -64,7 +64,7 @@ public abstract class TileEntityPowered extends BlockEntity {
                         if (tile != null && tile.getCapability(CapabilityEnergy.ENERGY, side.getOpposite()).isPresent()) {
                             IEnergyStorage externalStorage = tile.getCapability(CapabilityEnergy.ENERGY, side.getOpposite()).orElse(new EnergyStorage(0));
                             if (externalStorage.canReceive() && externalStorage.getEnergyStored() < externalStorage.getMaxEnergyStored()) {
-                                if (tile instanceof TileEntityPowered entityPowered) {
+                                if (tile instanceof PoweredBlockEntity entityPowered) {
                                     if (entityPowered.receiveMode.equals(ReceiveMode.ACCEPTS)){
                                         validReceivers++;
                                         receivers.add(externalStorage);
@@ -95,7 +95,7 @@ public abstract class TileEntityPowered extends BlockEntity {
                         if (tile != null && tile.getCapability(CapabilityEnergy.ENERGY, side.getOpposite()).isPresent()) {
                             IEnergyStorage externalStorage = tile.getCapability(CapabilityEnergy.ENERGY, side.getOpposite()).orElse(new EnergyStorage(0));
                             if (externalStorage.canReceive() && externalStorage.getEnergyStored() < externalStorage.getMaxEnergyStored()) {
-                                if (tile instanceof TileEntityPowered entityPowered) {
+                                if (tile instanceof PoweredBlockEntity entityPowered) {
                                     if (entityPowered.receiveMode.equals(ReceiveMode.ACCEPTS) || entityPowered.receiveMode.equals(ReceiveMode.NOT_SHARED)){
                                         validReceivers++;
                                         receivers.add(externalStorage);

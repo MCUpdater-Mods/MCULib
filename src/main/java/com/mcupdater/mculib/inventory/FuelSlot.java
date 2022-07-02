@@ -1,4 +1,4 @@
-package com.mcupdater.mculib.gui;
+package com.mcupdater.mculib.inventory;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
