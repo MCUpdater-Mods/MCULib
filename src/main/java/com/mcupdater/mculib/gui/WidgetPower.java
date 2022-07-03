@@ -33,6 +33,10 @@ public class WidgetPower extends AbstractWidget {
     }
 
     @Override
+    protected boolean isValidClickButton(int button) {
+        return false;
+    }
+    @Override
     public void renderButton(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         //draw Box
         this.fillGradient(poseStack,x + 1, y + 1, x + width - 1, y + height - 1, COLOR_BACKGROUND, COLOR_BACKGROUND); // interior
