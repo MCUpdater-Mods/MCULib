@@ -26,8 +26,10 @@ public class MachineOutputSlot extends SlotItemHandler {
 
     @Override
     public void onTake(Player player, ItemStack stack) {
-        int exp = blockEntity.extractExperience();
-        ExperienceOrb.award((ServerLevel) blockEntity.getLevel(), player.position(), exp);
-        super.onTake(player, stack);
+        if (player instanceof ServerPlayer) {
+            int exp = blockEntity.extractExperience();
+            ExperienceOrb.award((ServerLevel) blockEntity.getLevel(), player.position(), exp);
+            super.onTake(player, stack);
+        }
     }
 }

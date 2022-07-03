@@ -2,11 +2,8 @@ package com.mcupdater.mculib.block;
 
 import com.mcupdater.mculib.capabilities.PoweredBlockEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
-import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -27,8 +24,8 @@ public abstract class MachineBlockEntity extends PoweredBlockEntity {
             if (this.performWork()) {
                 this.energyStorage.extractEnergy(this.powerUse, false);
             }
-            this.tick();
         }
+        super.tick();
     }
 
     protected abstract boolean performWork();

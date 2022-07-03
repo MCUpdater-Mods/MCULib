@@ -6,10 +6,10 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 
-public abstract class ContainerPowered extends AbstractContainerMenu {
+public abstract class PowerTrackingMenu extends AbstractContainerMenu {
     protected PoweredBlockEntity tileEntity;
 
-    protected ContainerPowered(MenuType<?> type, int id) {
+    protected PowerTrackingMenu(MenuType<?> type, int id) {
         super(type, id);
     }
 
