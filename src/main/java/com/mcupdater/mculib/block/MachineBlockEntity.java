@@ -7,6 +7,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
+import static com.mcupdater.mculib.setup.Config.OVERDRIVE_ENABLED;
+
 public abstract class MachineBlockEntity extends PoweredBlockEntity {
     private final int powerUse;
     protected float storedXP = 0;
@@ -20,9 +22,25 @@ public abstract class MachineBlockEntity extends PoweredBlockEntity {
 
     @Override
     public void tick() {
-        if (this.energyStorage.getEnergyStored() >= this.powerUse) {
-            if (this.performWork()) {
-                this.energyStorage.extractEnergy(this.powerUse, false);
+        int cycles = 1;
+        if (OVERDRIVE_ENABLED.get()) {
+            int fillPct = ((int) ((double) this.energyStorage.getEnergyStored() / (double) this.energyStorage.getMaxEnergyStored()) * 100);
+            if (fillPct >= 80) {
+                cycles = 8;
+            } else if (fillPct >= 50) {
+                cycles = 4;
+            } else if (fillPct >= 25) {
+                cycles = 2;
+            }
+        }
+        for (int i = 0; i < cycles; i++) {
+            if (this.energyStorage.getEnergyStored() >= this.powerUse) {
+                if (this.performWork()) {
+                    this.energyStorage.extractEnergy(this.powerUse, false);
+                } else {
+                    super.tick();
+                    return;
+                }
             }
         }
         super.tick();
