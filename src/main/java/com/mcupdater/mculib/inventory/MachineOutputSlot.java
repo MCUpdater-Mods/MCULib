@@ -1,6 +1,6 @@
 package com.mcupdater.mculib.inventory;
 
-import com.mcupdater.mculib.block.MachineBlockEntity;
+import com.mcupdater.mculib.block.AbstractMachineBlockEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -11,9 +11,9 @@ import net.minecraftforge.items.SlotItemHandler;
 
 public class MachineOutputSlot extends SlotItemHandler {
     private final int index;
-    private final MachineBlockEntity blockEntity;
+    private final AbstractMachineBlockEntity blockEntity;
 
-    public MachineOutputSlot(MachineBlockEntity blockEntity, IItemHandler itemHandler, int parentIndex, int xPosition, int yPosition) {
+    public MachineOutputSlot(AbstractMachineBlockEntity blockEntity, IItemHandler itemHandler, int parentIndex, int xPosition, int yPosition) {
         super(itemHandler, parentIndex, xPosition, yPosition);
         this.blockEntity = blockEntity;
         this.index = parentIndex;

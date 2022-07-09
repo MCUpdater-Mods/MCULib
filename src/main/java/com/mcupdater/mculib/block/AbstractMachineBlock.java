@@ -10,10 +10,10 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 
-public abstract class MachineBlock extends BaseEntityBlock {
+public abstract class AbstractMachineBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-    public MachineBlock(Properties props) {
+    public AbstractMachineBlock(Properties props) {
         super(props);
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }

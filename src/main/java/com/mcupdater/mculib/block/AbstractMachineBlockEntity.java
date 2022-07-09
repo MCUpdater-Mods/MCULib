@@ -4,18 +4,20 @@ import com.mcupdater.mculib.capabilities.PoweredBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import static com.mcupdater.mculib.setup.Config.OVERDRIVE_ENABLED;
 
-public abstract class MachineBlockEntity extends PoweredBlockEntity {
+public abstract class AbstractMachineBlockEntity extends PoweredBlockEntity implements WorldlyContainer, MenuProvider {
     private final int powerUse;
     protected float storedXP = 0;
     protected int workProgress;
     protected int workTotal;
 
-    public MachineBlockEntity(BlockEntityType<?> tileEntity, BlockPos blockPos, BlockState blockState, int capacity, int maxTransfer, ReceiveMode receive, SendMode send, int powerUse) {
+    public AbstractMachineBlockEntity(BlockEntityType<?> tileEntity, BlockPos blockPos, BlockState blockState, int capacity, int maxTransfer, ReceiveMode receive, SendMode send, int powerUse) {
         super(tileEntity, blockPos, blockState, capacity, maxTransfer, receive, send);
         this.powerUse = powerUse;
     }
