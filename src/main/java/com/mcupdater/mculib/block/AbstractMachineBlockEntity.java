@@ -1,7 +1,9 @@
 package com.mcupdater.mculib.block;
 
 import com.mcupdater.mculib.capabilities.PoweredBlockEntity;
+import com.mcupdater.mculib.inventory.InputOutputSettings;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -10,7 +12,11 @@ import net.minecraft.world.Nameable;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.mcupdater.mculib.setup.Config.OVERDRIVE_ENABLED;
 
@@ -20,10 +26,12 @@ public abstract class AbstractMachineBlockEntity extends PoweredBlockEntity impl
     protected int workProgress;
     protected int workTotal;
     protected Component name;
+    protected Map<String, Map<Direction, InputOutputSettings>> sideConfigs = new HashMap<>();
 
     public AbstractMachineBlockEntity(BlockEntityType<?> tileEntity, BlockPos blockPos, BlockState blockState, int capacity, int maxTransfer, ReceiveMode receive, SendMode send, int powerUse) {
         super(tileEntity, blockPos, blockState, capacity, maxTransfer, receive, send);
         this.powerUse = powerUse;
+        this.sideConfigs.put("power",InputOutputSettings.getDefaultMap());
     }
 
     @Override
@@ -63,6 +71,24 @@ public abstract class AbstractMachineBlockEntity extends PoweredBlockEntity impl
         if (compound.contains("CustomName",8)) {
             this.name = Component.Serializer.fromJson(compound.getString("CustomName"));
         }
+        if (compound.contains("SideConfigs")) {
+            CompoundTag configs = compound.getCompound("SideConfigs");
+            if (configs.contains("power")) {
+                CompoundTag power = configs.getCompound("power");
+                Map<Direction, InputOutputSettings> powerMap = InputOutputSettings.loadMapFromNBT(power);
+                sideConfigs.put("power",powerMap);
+            }
+            if (configs.contains("items")) {
+                CompoundTag items = configs.getCompound("items");
+                Map<Direction, InputOutputSettings> powerMap = InputOutputSettings.loadMapFromNBT(items);
+                sideConfigs.put("itens",powerMap);
+            }
+            if (configs.contains("fluids")) {
+                CompoundTag power = configs.getCompound("fluids");
+                Map<Direction, InputOutputSettings> powerMap = InputOutputSettings.loadMapFromNBT(power);
+                sideConfigs.put("fluids",powerMap);
+            }
+        }
     }
 
     @Override
@@ -73,6 +99,15 @@ public abstract class AbstractMachineBlockEntity extends PoweredBlockEntity impl
         if (this.name != null) {
             compound.putString("CustomName", Component.Serializer.toJson(this.name));
         }
+        CompoundTag configs = new CompoundTag();
+        for (Map.Entry<String,Map<Direction,InputOutputSettings>> entry : sideConfigs.entrySet()) {
+            String type = entry.getKey();
+            Map<Direction, InputOutputSettings> internalMap = entry.getValue();
+            CompoundTag configType = new CompoundTag();
+            InputOutputSettings.saveMapToNBT(configType, internalMap);
+            configs.put(type,configType);
+        }
+        compound.put("SideConfigs", configs);
         super.saveAdditional(compound);
     }
 
