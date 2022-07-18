@@ -4,6 +4,8 @@ import com.mcupdater.mculib.capabilities.PowerTrackingMenu;
 import com.mcupdater.mculib.inventory.MachineInputSlot;
 import com.mcupdater.mculib.inventory.MachineOutputSlot;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
@@ -15,19 +17,23 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
+import java.util.Map;
+
 public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEntity> extends PowerTrackingMenu {
-    private final Player player;
-    private final IItemHandler playerInventory;
-    private final ContainerData data;
+    protected final Player player;
+    protected final IItemHandler playerInventory;
+    protected final ContainerData data;
+    private final Map<Direction, Component> adjacentNames;
     protected MACHINE machineEntity;
 
-    protected AbstractMachineMenu(MACHINE sourceEntity, MenuType<?> type, int id, Level level, BlockPos blockPos, Inventory inventory, Player player, ContainerData data) {
+    protected AbstractMachineMenu(MACHINE sourceEntity, MenuType<?> type, int id, Level level, BlockPos blockPos, Inventory inventory, Player player, ContainerData data, Map<Direction,Component> adjacentNames) {
         super(type, id);
         this.machineEntity = sourceEntity;
         this.tileEntity = sourceEntity;
         this.player = player;
         this.playerInventory = new InvWrapper(inventory);
         this.data = data;
+        this.adjacentNames = adjacentNames;
 
         this.addMachineSlots();
         layoutPlayerInventorySlots(8,84);
@@ -44,7 +50,7 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
         return machineEntity;
     }
 
-    private void layoutPlayerInventorySlots(int leftCol, int topRow) {
+    protected void layoutPlayerInventorySlots(int leftCol, int topRow) {
         // Player inventory
         addSlotBox(playerInventory, 9, leftCol, topRow, 9, 18, 3, 18);
 
@@ -53,7 +59,7 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
         addSlotRange(playerInventory, 0, leftCol, topRow, 9, 18);
     }
 
-    private int addSlotBox(IItemHandler handler, int index, int x, int y, int horAmount, int dx, int verAmount, int dy) {
+    protected int addSlotBox(IItemHandler handler, int index, int x, int y, int horAmount, int dx, int verAmount, int dy) {
         for (int j = 0; j < verAmount; j++) {
             index = addSlotRange(handler, index, x, y, horAmount, dx);
             y += dy;
@@ -61,7 +67,7 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
         return index;
     }
 
-    private int addSlotRange(IItemHandler handler, int index, int x, int y, int amount, int dx) {
+    protected int addSlotRange(IItemHandler handler, int index, int x, int y, int amount, int dx) {
         for (int i = 0; i < amount; i++) {
             addSlot(new SlotItemHandler(handler, index, x, y));
             x += dx;
@@ -122,6 +128,7 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
         return this.data.get(0) * 18 / maxWork;
     }
 
-    public void showConfigUI() {
+    public Component getSideName(Direction side) {
+        return this.adjacentNames.get(side);
     }
 }
