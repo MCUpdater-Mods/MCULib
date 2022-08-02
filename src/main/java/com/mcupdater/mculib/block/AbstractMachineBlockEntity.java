@@ -10,9 +10,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -34,8 +34,11 @@ public abstract class AbstractMachineBlockEntity extends PoweredBlockEntity impl
         this.sideConfigs.put("power",InputOutputSettings.getDefaultMap());
     }
 
-    @Override
-    public void tick() {
+    public void tick(Level pLevel, BlockPos pPos, BlockState pBlockState) {
+        if (level.isClientSide()) {
+            return; // Don't tick on the client
+        }
+
         int cycles = 1;
         if (OVERDRIVE_ENABLED.get()) {
             int fillPct = ((int) ((double) this.energyStorage.getEnergyStored() / (double) this.energyStorage.getMaxEnergyStored()) * 100);
@@ -51,7 +54,17 @@ public abstract class AbstractMachineBlockEntity extends PoweredBlockEntity impl
             if (this.energyStorage.getEnergyStored() >= this.powerUse) {
                 if (this.performWork()) {
                     this.energyStorage.extractEnergy(this.powerUse, false);
+                    boolean currentState = pBlockState.getValue((AbstractMachineBlock.ACTIVE));
+                    if (!currentState) {
+                        pBlockState = pBlockState.setValue(AbstractMachineBlock.ACTIVE, true);
+                        pLevel.setBlock(pPos, pBlockState, 3);
+                    }
                 } else {
+                    boolean currentState = pBlockState.getValue((AbstractMachineBlock.ACTIVE));
+                    if (currentState) {
+                        pBlockState = pBlockState.setValue(AbstractMachineBlock.ACTIVE, false);
+                        pLevel.setBlock(pPos, pBlockState, 3);
+                    }
                     super.tick();
                     return;
                 }
