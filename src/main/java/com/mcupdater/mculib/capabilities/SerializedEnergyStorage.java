@@ -1,12 +1,17 @@
 package com.mcupdater.mculib.capabilities;
 
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.energy.EnergyStorage;
 
-public class SerializedEnergyStorage extends EnergyStorage {
+import javax.annotation.Nonnull;
 
-    public SerializedEnergyStorage(int capacity, int maxTransfer) {
+public class SerializedEnergyStorage extends EnergyStorage {
+    private Level level;
+    protected long lastReceiveTick;
+
+    public SerializedEnergyStorage(@Nonnull Level level, int capacity, int maxTransfer) {
         this(capacity, maxTransfer, maxTransfer);
+        this.level = level;
     }
 
     public SerializedEnergyStorage(int capacity, int maxReceive, int maxExtract) {
@@ -17,4 +22,28 @@ public class SerializedEnergyStorage extends EnergyStorage {
         this.energy = newEnergy;
     }
 
+    @Override
+    public int receiveEnergy(int maxReceive, boolean simulate) {
+        if (level != null && level.getGameTime() > lastReceiveTick) {
+            lastReceiveTick = level.getGameTime();
+            return super.receiveEnergy(maxReceive, simulate);
+        }
+        return 0;
+    }
+
+    public int getMaxOutput() {
+        return this.maxExtract;
+    }
+
+    public int getMaxInput() {
+        return this.maxReceive;
+    }
+
+    public boolean hasLevel() {
+        return this.level != null;
+    }
+
+    public void setLevel(Level level) {
+        this.level = level;
+    }
 }

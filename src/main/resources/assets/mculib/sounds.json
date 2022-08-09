@@ -1,0 +1,8 @@
+{
+  "machine_hum": {
+    "subtitle": "sounds.mculib.machine_hum",
+    "sounds": [
+      "mculib:machine_hum"
+    ]
+  }
+}
