@@ -1,5 +1,9 @@
 {
   "itemGroup.mculib": "MCUpdater Mods",
   "configuration": "Configuration",
-  "sounds.mculib.machine_hum": "Machine hums"
+  "sounds.mculib.machine_hum": "Machine hums",
+  "gui.processenhancement.config": "Configure",
+  "gui.processenhancement.items": "Items",
+  "gui.processenhancement.energy": "Energy",
+  "gui.processenhancement.fluids": "Fluids"
 }

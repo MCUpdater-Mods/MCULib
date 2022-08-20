@@ -21,9 +21,7 @@ public abstract class PoweredBlockEntity extends BlockEntity {
     public enum ReceiveMode {ACCEPTS,NOT_SHARED,NO_RECEIVE}
     public enum SendMode {SHARE,SEND_ALL,NO_SEND}
 
-    protected SerializedEnergyStorage energyStorage;
-    protected LazyOptional<IEnergyStorage> energyHandler = LazyOptional.of(() -> energyStorage);
-
+    protected ConfigurableEnergyStorage energyStorage;
     protected ReceiveMode receiveMode;
     protected SendMode sendMode;
 
@@ -33,7 +31,7 @@ public abstract class PoweredBlockEntity extends BlockEntity {
 
     public PoweredBlockEntity(BlockEntityType<?> tileEntity, BlockPos blockPos, BlockState blockState, int capacity, int maxTransfer, ReceiveMode receive, SendMode send) {
         super(tileEntity, blockPos, blockState);
-        this.energyStorage = new SerializedEnergyStorage(this.level, capacity, maxTransfer);
+        this.energyStorage = new ConfigurableEnergyStorage(this.level, capacity, maxTransfer);
         this.receiveMode = receive;
         this.sendMode = send;
     }
@@ -47,7 +45,7 @@ public abstract class PoweredBlockEntity extends BlockEntity {
     @Override
     public void saveAdditional(CompoundTag compound) {
         super.saveAdditional(compound);
-        compound.putInt("energy", this.energyStorage.getEnergyStored());
+        compound.putInt("energy", this.energyStorage.getStoredEnergy());
         //return compound;
     }
 
@@ -55,12 +53,12 @@ public abstract class PoweredBlockEntity extends BlockEntity {
         if (!this.energyStorage.hasLevel() && this.level != null) {
             this.energyStorage.setLevel(this.level);
         }
-        if (!this.level.isClientSide) {
+        if (this.level != null && !this.level.isClientSide) {
             // Distribute energy
             switch (this.sendMode) {
                 case SHARE:
-                    if (this.energyStorage.getEnergyStored() > (this.energyStorage.getMaxEnergyStored() / 2)) {
-                        int splitEnergy = this.energyStorage.getEnergyStored() - (this.energyStorage.getMaxEnergyStored() / 2);
+                    if (this.energyStorage.getStoredEnergy() > (this.energyStorage.getCapacity() / 2)) {
+                        int splitEnergy = this.energyStorage.getStoredEnergy() - (this.energyStorage.getCapacity() / 2);
                         int validReceivers = 0;
                         List<IEnergyStorage> receivers = new ArrayList<>();
                         for (Direction side : Direction.values()) {
@@ -83,15 +81,15 @@ public abstract class PoweredBlockEntity extends BlockEntity {
                         if (validReceivers > 0) {
                             int shared = Math.floorDiv(splitEnergy, validReceivers);
                             for (IEnergyStorage receiver : receivers) {
-                                int removed = this.energyStorage.extractEnergy(receiver.receiveEnergy(shared, false), false);
+                                int removed = this.energyStorage.getInternalHandler().extractEnergy(receiver.receiveEnergy(shared, false), false);
                             }
                             this.setChanged();
                         }
                     }
                     break;
                 case SEND_ALL:
-                    if (this.energyStorage.getEnergyStored() > 0) {
-                        int splitEnergy = this.energyStorage.getEnergyStored();
+                    if (this.energyStorage.getStoredEnergy() > 0) {
+                        int splitEnergy = this.energyStorage.getStoredEnergy();
                         int validReceivers = 0;
                         List<IEnergyStorage> receivers = new ArrayList<>();
                         for (Direction side : Direction.values()) {
@@ -112,9 +110,9 @@ public abstract class PoweredBlockEntity extends BlockEntity {
                             }
                         }
                         if (validReceivers > 0) {
-                            int shared = Math.min(this.energyStorage.getMaxOutput(), Math.floorDiv(splitEnergy, validReceivers));
+                            int shared = Math.min(this.energyStorage.getMaxExtract(), Math.floorDiv(splitEnergy, validReceivers));
                             for (IEnergyStorage receiver : receivers) {
-                                int removed = this.energyStorage.extractEnergy(receiver.receiveEnergy(shared, false), false);
+                                int removed = this.energyStorage.getInternalHandler().extractEnergy(receiver.receiveEnergy(shared, false), false);
 
                             }
                             this.setChanged();
@@ -132,12 +130,16 @@ public abstract class PoweredBlockEntity extends BlockEntity {
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
         if (cap.equals(CapabilityEnergy.ENERGY)) {
-            return energyHandler.cast();
+            if (side != null) {
+                return energyStorage.getEnergyHandler(side).cast();
+            } else {
+                return LazyOptional.of(() -> energyStorage.getInternalHandler()).cast();
+            }
         }
         return super.getCapability(cap, side);
     }
 
     public IEnergyStorage getEnergyHandler() {
-        return this.energyStorage;
+        return this.energyStorage.getInternalHandler();
     }
 }

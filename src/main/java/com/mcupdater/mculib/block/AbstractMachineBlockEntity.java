@@ -41,19 +41,19 @@ public abstract class AbstractMachineBlockEntity extends PoweredBlockEntity impl
 
         int cycles = 1;
         if (OVERDRIVE_ENABLED.get()) {
-            int fillPct = ((int) ((double) this.energyStorage.getEnergyStored() / (double) this.energyStorage.getMaxEnergyStored()) * 100);
-            if (fillPct >= 80) {
+            double fill = (this.energyStorage.getStoredEnergy() * 1.0d) / this.energyStorage.getCapacity();
+            if (fill >= 0.8d) {
                 cycles = 8;
-            } else if (fillPct >= 50) {
+            } else if (fill >= 0.5d) {
                 cycles = 4;
-            } else if (fillPct >= 25) {
+            } else if (fill >= 0.25d) {
                 cycles = 2;
             }
         }
         for (int i = 0; i < cycles; i++) {
-            if (this.energyStorage.getEnergyStored() >= this.powerUse) {
+            if (this.energyStorage.getStoredEnergy() >= this.powerUse) {
                 if (this.performWork()) {
-                    this.energyStorage.extractEnergy(this.powerUse, false);
+                    this.energyStorage.getInternalHandler().extractEnergy(this.powerUse, false);
                     boolean currentState = pBlockState.getValue((AbstractMachineBlock.ACTIVE));
                     if (!currentState) {
                         pBlockState = pBlockState.setValue(AbstractMachineBlock.ACTIVE, true);

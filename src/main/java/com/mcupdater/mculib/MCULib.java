@@ -4,7 +4,6 @@ import com.mcupdater.mculib.setup.Config;
 import com.mcupdater.mculib.setup.ModSetup;
 import com.mcupdater.mculib.setup.Registration;
 import com.mojang.logging.LogUtils;
-import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;

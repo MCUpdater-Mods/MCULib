@@ -2,29 +2,21 @@ package com.mcupdater.mculib.gui;
 
 import com.mcupdater.mculib.MCULib;
 import com.mcupdater.mculib.block.AbstractMachineMenu;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 
-import javax.annotation.Nonnull;
+public class TabConfig extends TabWidget {
 
-public class TabConfig<CONTAINER extends AbstractMachineMenu> extends AbstractWidget {
-
-    private final int COLOR_BACKGROUND = 0xff2b8b2b;
-    private final int COLOR_SHADOW = 0x7f373737;
-    private final int COLOR_HIGHLIGHT = 0x7fffffff;
-    private ResourceLocation WRENCH = new ResourceLocation(MCULib.MODID, "textures/gui/wrench.png");
-    private ClickAction<AbstractContainerScreen<AbstractMachineMenu>> clickAction;
+    private static final int COLOR_BACKGROUND = 0xff2b8b2b;
+    private static final int COLOR_SELECTED = 0xff5bbb5b;
+    private static ResourceLocation WRENCH = new ResourceLocation(MCULib.MODID, "textures/gui/icon/wrench.png");
 
     public TabConfig(int x, int y, int width, int height, ClickAction<AbstractContainerScreen<AbstractMachineMenu>> clickAction) {
-        super(x, y, width, height, TextComponent.EMPTY);
-        this.clickAction = clickAction;
+        super(x, y, width, height, COLOR_BACKGROUND, COLOR_SELECTED, WRENCH, new TranslatableComponent("gui.processenhancement.config"), clickAction);
     }
 
+    /*
     @Override
     public void updateNarration(NarrationElementOutput narrationElementOutput) {
 
@@ -32,7 +24,7 @@ public class TabConfig<CONTAINER extends AbstractMachineMenu> extends AbstractWi
 
     @Override
     public void renderButton(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        this.fillGradient(poseStack, x, y, x + width, y + height, COLOR_BACKGROUND, COLOR_BACKGROUND);
+        fill(poseStack, x, y, x + width, y + height, selected ? COLOR_SELECTED : COLOR_BACKGROUND);
         this.hLine(poseStack, x, x + width - 1, y, COLOR_HIGHLIGHT);
         this.vLine(poseStack, x, y, y + height - 1, COLOR_HIGHLIGHT);
         this.hLine(poseStack, x, x + width - 1, y + height - 1, COLOR_SHADOW);
@@ -44,6 +36,7 @@ public class TabConfig<CONTAINER extends AbstractMachineMenu> extends AbstractWi
 
     @Override
     public void onClick(double mouseX, double mouseY) {
+        this.selected = !this.selected;
         this.clickAction.click(mouseX, mouseY);
     }
 
@@ -51,4 +44,6 @@ public class TabConfig<CONTAINER extends AbstractMachineMenu> extends AbstractWi
     public interface ClickAction<T extends AbstractContainerScreen<AbstractMachineMenu>> {
         void click(double mouseX, double mouseY);
     }
+
+     */
 }

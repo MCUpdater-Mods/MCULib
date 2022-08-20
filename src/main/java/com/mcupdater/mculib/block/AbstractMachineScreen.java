@@ -10,11 +10,11 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.Slot;
 
 public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlockEntity, MENU extends AbstractMachineMenu<MACHINE>> extends AbstractContainerScreen<MENU> {
 
     private ConfigPanel configPanel;
+    private TabConfig configTab;
 
     public AbstractMachineScreen(MENU pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
@@ -24,17 +24,19 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
     protected void init() {
         super.init();
         this.addRenderableWidget(new WidgetPower(this.leftPos + 153, this.topPos + 5, 18, 71, menu.getEnergyHandler(), WidgetPower.Orientation.VERTICAL));
-        this.configPanel = this.addRenderableWidget(new ConfigPanel(this.menu, this.leftPos, this.topPos, this.imageWidth, this.imageHeight));
-        this.configPanel.visible = false;
-        this.addRenderableWidget(new TabConfig<MENU>(this.leftPos - 22, this.topPos + 2,22,22, (mouseX, mouseY) -> {
-            this.configPanel.visible = !this.configPanel.visible;
+        this.configPanel = new ConfigPanel(this.menu, this.leftPos, this.topPos, this.imageWidth, this.imageHeight);
+        this.configPanel.setVisible(false);
+        this.configTab = this.addRenderableWidget(new TabConfig(this.leftPos - 22, this.topPos + 2,22,22, (mouseX, mouseY) -> {
+            this.configPanel.setVisible(!this.configPanel.isVisible());
         }));
+        this.configTab.setChild(this.configPanel);
+
     }
 
     @Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(poseStack);
-        if (!this.configPanel.visible) {
+        if (!this.configPanel.isVisible()) {
             super.render(poseStack, mouseX, mouseY, partialTicks);
         } else {
             renderNoSlots(poseStack, mouseX, mouseY, partialTicks);
@@ -53,7 +55,7 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
         }
         PoseStack posestack = RenderSystem.getModelViewStack();
         posestack.pushPose();
-        posestack.translate((double)i, (double)j, 0.0D);
+        posestack.translate(i, j, 0.0D);
         RenderSystem.applyModelViewMatrix();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         this.renderLabels(pPoseStack, pMouseX, pMouseY);
@@ -78,7 +80,7 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
 
     @Override
     protected void renderLabels(PoseStack pPoseStack, int pMouseX, int pMouseY) {
-        if (!this.configPanel.visible) {
+        if (!this.configPanel.isVisible()) {
             super.renderLabels(pPoseStack, pMouseX, pMouseY);
         }
     }

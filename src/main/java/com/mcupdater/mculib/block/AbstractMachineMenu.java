@@ -13,13 +13,14 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
 import java.util.Map;
 
-public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEntity> extends PowerTrackingMenu {
+public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEntity> extends PowerTrackingMenu implements IConfigurableMenu {
     protected final Player player;
     protected final IItemHandler playerInventory;
     protected final ContainerData data;
@@ -46,7 +47,8 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
         addSlot(new MachineOutputSlot(this.machineEntity, new InvWrapper(this.machineEntity), 1, 98, 37));
     }
 
-    public MACHINE getBlockEntity() {
+    @Override
+    public BlockEntity getBlockEntity() {
         return machineEntity;
     }
 
@@ -128,6 +130,7 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
         return this.data.get(0) * 18 / maxWork;
     }
 
+    @Override
     public Component getSideName(Direction side) {
         return this.adjacentNames.get(side);
     }

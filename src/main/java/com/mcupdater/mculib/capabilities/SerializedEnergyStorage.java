@@ -24,11 +24,10 @@ public class SerializedEnergyStorage extends EnergyStorage {
 
     @Override
     public int receiveEnergy(int maxReceive, boolean simulate) {
-        if (level != null && level.getGameTime() > lastReceiveTick) {
+        if (level != null && !simulate && level.getGameTime() > lastReceiveTick) {
             lastReceiveTick = level.getGameTime();
-            return super.receiveEnergy(maxReceive, simulate);
         }
-        return 0;
+        return super.receiveEnergy(maxReceive, simulate);
     }
 
     public int getMaxOutput() {

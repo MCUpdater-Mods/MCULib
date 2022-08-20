@@ -23,10 +23,8 @@ public abstract class PowerTrackingMenu extends AbstractContainerMenu {
 
                 @Override
                 public void set(int value) {
-                    tileEntity.getCapability(CapabilityEnergy.ENERGY).ifPresent(h -> {
-                        int energyStored = h.getEnergyStored() & 0xffff0000;
-                        ((SerializedEnergyStorage) h).setEnergy(energyStored + (value & 0xffff));
-                    });
+                        int energyStored = getEnergyHandler().getEnergyStored() & 0xffff0000;
+                        tileEntity.energyStorage.setEnergy(energyStored + (value & 0xffff));
                 }
             });
             addDataSlot(new DataSlot() {
@@ -37,21 +35,19 @@ public abstract class PowerTrackingMenu extends AbstractContainerMenu {
 
                 @Override
                 public void set(int value) {
-                    tileEntity.getCapability(CapabilityEnergy.ENERGY).ifPresent(h -> {
-                        int energyStored = h.getEnergyStored() & 0x0000ffff;
-                        ((SerializedEnergyStorage) h).setEnergy(energyStored | (value << 16));
-                    });
+                    int energyStored = getEnergyHandler().getEnergyStored() & 0x0000ffff;
+                    tileEntity.energyStorage.setEnergy(energyStored | (value << 16));
                 }
             });
         }
     }
 
     public int getEnergy() {
-        return tileEntity.getCapability(CapabilityEnergy.ENERGY).map(IEnergyStorage::getEnergyStored).orElse(0);
+        return tileEntity.energyStorage.getInternalHandler().getEnergyStored();
     }
 
     public int getMaxEnergy() {
-        return tileEntity.getCapability(CapabilityEnergy.ENERGY).map(IEnergyStorage::getMaxEnergyStored).orElse(0);
+        return tileEntity.energyStorage.getInternalHandler().getMaxEnergyStored();
     }
 
     public IEnergyStorage getEnergyHandler() {
