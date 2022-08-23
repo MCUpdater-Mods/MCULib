@@ -14,8 +14,13 @@ public class PhantomSlot extends Slot {
     }
 
     @Override
+    public boolean mayPlace(ItemStack pStack) {
+        return true;
+    }
+
+    @Override
     public boolean mayPickup(Player pPlayer) {
-        return false;
+        return true;
     }
 
     @Override
