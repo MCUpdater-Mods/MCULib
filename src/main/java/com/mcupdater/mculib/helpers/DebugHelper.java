@@ -33,6 +33,6 @@ public class DebugHelper {
             clazz = superClass;
         } while (!"java.lang.Object".equals(clazz.getCanonicalName()));
 
-        return new HashSet<Class<?>>(res);
+        return new HashSet<>(res);
     }
 }

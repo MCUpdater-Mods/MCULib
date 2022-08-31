@@ -26,9 +26,7 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
         this.addRenderableWidget(new WidgetPower(this.leftPos + 153, this.topPos + 5, 18, 71, menu.getEnergyHandler(), WidgetPower.Orientation.VERTICAL));
         this.configPanel = new ConfigPanel(this.menu, this.leftPos, this.topPos, this.imageWidth, this.imageHeight);
         this.configPanel.setVisible(false);
-        this.configTab = this.addRenderableWidget(new TabConfig(this.leftPos - 22, this.topPos + 2,22,22, (mouseX, mouseY) -> {
-            this.configPanel.setVisible(!this.configPanel.isVisible());
-        }));
+        this.configTab = this.addRenderableWidget(new TabConfig(this.leftPos - 22, this.topPos + 2,22,22, (mouseX, mouseY) -> this.configPanel.setVisible(!this.configPanel.isVisible())));
         this.configTab.setChild(this.configPanel);
 
     }
@@ -38,10 +36,10 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
         this.renderBackground(poseStack);
         if (!this.configPanel.isVisible()) {
             super.render(poseStack, mouseX, mouseY, partialTicks);
+            this.renderTooltip(poseStack, mouseX, mouseY);
         } else {
             renderNoSlots(poseStack, mouseX, mouseY, partialTicks);
         }
-        this.renderTooltip(poseStack, mouseX, mouseY);
     }
 
     public void renderNoSlots(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {

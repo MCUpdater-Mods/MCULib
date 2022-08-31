@@ -1,5 +1,6 @@
 package com.mcupdater.mculib.block;
 
+import com.mcupdater.mculib.capabilities.ItemResourceHandler;
 import com.mcupdater.mculib.capabilities.PowerTrackingMenu;
 import com.mcupdater.mculib.inventory.MachineInputSlot;
 import com.mcupdater.mculib.inventory.MachineOutputSlot;
@@ -43,12 +44,13 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
     }
 
     protected void addMachineSlots() {
-        addSlot(new MachineInputSlot(this.machineEntity, new InvWrapper(this.machineEntity), 0, 62, 37));
-        addSlot(new MachineOutputSlot(this.machineEntity, new InvWrapper(this.machineEntity), 1, 98, 37));
+        ItemResourceHandler resourceHandler = (ItemResourceHandler) this.machineEntity.configMap.get("items");
+        addSlot(new MachineInputSlot(this.machineEntity, resourceHandler.getInternalHandler(), 0, 62, 37));
+        addSlot(new MachineOutputSlot(this.machineEntity, resourceHandler.getInternalHandler(), 1, 98, 37));
     }
 
     @Override
-    public BlockEntity getBlockEntity() {
+    public AbstractConfigurableBlockEntity getBlockEntity() {
         return machineEntity;
     }
 
@@ -81,6 +83,7 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
+        ItemResourceHandler resourceHandler = (ItemResourceHandler) this.machineEntity.configMap.get("items");
         Slot slot = this.slots.get(index);
         if (slot != null && slot.hasItem()) {
             ItemStack stackInSlot = slot.getItem();
@@ -90,7 +93,7 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
                     return ItemStack.EMPTY;
                 }
             } else { // Player inventory slots
-                if (this.machineEntity.canPlaceItem(0, stackInSlot)) { // Insert fuel
+                if (resourceHandler.canPlaceItem(0, stackInSlot)) { // Insert fuel
                     if (!this.moveItemStackTo(stackInSlot, 0, 1, false)) {
                         return ItemStack.EMPTY;
                     }

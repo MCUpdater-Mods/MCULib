@@ -3,7 +3,6 @@ package com.mcupdater.mculib.block;
 import com.mcupdater.mculib.helpers.DataHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;

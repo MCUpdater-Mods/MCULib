@@ -39,9 +39,9 @@ public class DataHelper {
         for (Direction side : Direction.values()) {
             Component name;
             BlockEntity entity = pLevel.getBlockEntity(pPos.relative(side));
-            if (entity != null && entity instanceof Nameable nameable) {
+            if (entity instanceof Nameable nameable) {
                 name = nameable.getDisplayName();
-            } else if (entity != null && entity instanceof MenuProvider menuProvider) {
+            } else if (entity instanceof MenuProvider menuProvider) {
                 name = menuProvider.getDisplayName();
             } else {
                 name = pLevel.getBlockState(pPos.relative(side)).getBlock().getName();

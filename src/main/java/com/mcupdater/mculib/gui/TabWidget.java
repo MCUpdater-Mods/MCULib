@@ -1,6 +1,5 @@
 package com.mcupdater.mculib.gui;
 
-import com.mcupdater.mculib.MCULib;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
@@ -62,7 +61,7 @@ public class TabWidget extends GuiComponent implements Widget, GuiEventListener,
 
             // Render the icon
             RenderSystem.setShaderTexture(0, this.icon);
-            this.blit(pPoseStack, this.x + 3, this.y + 3, this.getBlitOffset(), 0f, 0f, 16, 16, 16, 16);
+            blit(pPoseStack, this.x + 3, this.y + 3, this.getBlitOffset(), 0f, 0f, 16, 16, 16, 16);
 
             // Render child
             if (child != null) {
@@ -122,9 +121,7 @@ public class TabWidget extends GuiComponent implements Widget, GuiEventListener,
                 }
             }
             if (this.selected && child instanceof GuiEventListener childEvent) {
-                if (childEvent.mouseClicked(pMouseX,pMouseY,pButton)) {
-                    return true;
-                }
+                return childEvent.mouseClicked(pMouseX, pMouseY, pButton);
             }
         }
         return false;
