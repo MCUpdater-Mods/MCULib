@@ -1,6 +1,5 @@
 package com.mcupdater.mculib.gui;
 
-import com.mcupdater.mculib.MCULib;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Widget;
@@ -9,7 +8,6 @@ import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractContainerWidget extends GuiComponent implements Widget, GuiEventListener, NarratableEntry {

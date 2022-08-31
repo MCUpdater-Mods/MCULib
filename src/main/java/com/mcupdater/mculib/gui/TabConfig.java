@@ -12,7 +12,7 @@ public class TabConfig extends TabWidget {
     private static final int COLOR_SELECTED = 0xff5bbb5b;
     private static ResourceLocation WRENCH = new ResourceLocation(MCULib.MODID, "textures/gui/icon/wrench.png");
 
-    public TabConfig(int x, int y, int width, int height, ClickAction<AbstractContainerScreen<AbstractMachineMenu>> clickAction) {
+    public TabConfig(int x, int y, int width, int height, ClickAction<AbstractContainerScreen<AbstractMachineMenu<?>>> clickAction) {
         super(x, y, width, height, COLOR_BACKGROUND, COLOR_SELECTED, WRENCH, new TranslatableComponent("gui.processenhancement.config"), clickAction);
     }
 

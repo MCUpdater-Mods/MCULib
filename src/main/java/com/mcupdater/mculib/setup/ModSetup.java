@@ -1,6 +1,7 @@
 package com.mcupdater.mculib.setup;
 
 import com.mcupdater.mculib.MCULib;
+import com.mcupdater.mculib.network.ChannelRegistration;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.common.Mod;
@@ -17,6 +18,6 @@ public class ModSetup {
     };
 
     public static void init(final FMLCommonSetupEvent event) {
-        //Do nothing
+        ChannelRegistration.init();
     }
 }

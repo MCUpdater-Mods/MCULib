@@ -60,10 +60,7 @@ public class InventoryHelper {
                 if (invOutput != EmptyHandler.INSTANCE) {
                     if (canStackFitInInventory(invOutput, stack)) {
                         ItemStack remain = insertItemStackIntoInventory(invOutput, stack);
-                        if (remain.isEmpty()) {
-                            return true;
-                        }
-                        return false;
+                        return remain.isEmpty();
                     }
                 }
             }
@@ -76,23 +73,22 @@ public class InventoryHelper {
             return false;
         if (!stack1.sameItem(stack2))
             return false;
-        if (!ItemStack.tagMatches(stack1, stack2))
-            return false;
-        return true;
+        return ItemStack.tagMatches(stack1, stack2);
 
     }
 
     public static List<Direction> getSideList(BlockPos pos, Direction facing) {
-        switch (facing) {
-            case NORTH:
-                return new ArrayList<>(Arrays.asList(Direction.DOWN, Direction.WEST, Direction.SOUTH, Direction.EAST, Direction.UP));
-            case EAST:
-                return new ArrayList<>(Arrays.asList(Direction.DOWN, Direction.NORTH, Direction.WEST, Direction.SOUTH, Direction.UP));
-            case SOUTH:
-                return new ArrayList<>(Arrays.asList(Direction.DOWN, Direction.EAST, Direction.NORTH, Direction.WEST, Direction.UP));
-            case WEST:
-                return new ArrayList<>(Arrays.asList(Direction.DOWN, Direction.SOUTH, Direction.EAST, Direction.NORTH, Direction.UP));
-        }
-        return new ArrayList<>(Arrays.asList(Direction.DOWN, Direction.SOUTH, Direction.EAST, Direction.NORTH, Direction.UP));
+        return switch (facing) {
+            case NORTH ->
+                    new ArrayList<>(Arrays.asList(Direction.DOWN, Direction.WEST, Direction.SOUTH, Direction.EAST, Direction.UP));
+            case EAST ->
+                    new ArrayList<>(Arrays.asList(Direction.DOWN, Direction.NORTH, Direction.WEST, Direction.SOUTH, Direction.UP));
+            case SOUTH ->
+                    new ArrayList<>(Arrays.asList(Direction.DOWN, Direction.EAST, Direction.NORTH, Direction.WEST, Direction.UP));
+            case WEST ->
+                    new ArrayList<>(Arrays.asList(Direction.DOWN, Direction.SOUTH, Direction.EAST, Direction.NORTH, Direction.UP));
+            default ->
+                    new ArrayList<>(Arrays.asList(Direction.DOWN, Direction.SOUTH, Direction.EAST, Direction.NORTH, Direction.UP));
+        };
     }
 }

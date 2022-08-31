@@ -47,14 +47,15 @@ public class WidgetPower extends AbstractWidget {
         RenderSystem.setShaderTexture(0, ENERGY);
         int energyOffset;
         int transform = (int) minecraft.level.getLevelData().getGameTime() % 256;
-        switch(orientation) {
-            case VERTICAL:
+        switch (orientation) {
+            case VERTICAL -> {
                 energyOffset = getEnergyScaled(this.height - 2);
-                this.blit(poseStack, this.x + 1, this.y + (this.height - energyOffset) - 1, transform, transform, this.width-2, energyOffset);
-            break;
-            case HORIZONAL:
+                this.blit(poseStack, this.x + 1, this.y + (this.height - energyOffset) - 1, transform, transform, this.width - 2, energyOffset);
+            }
+            case HORIZONAL -> {
                 energyOffset = getEnergyScaled(this.width - 2);
-                this.blit(poseStack, this.x + 1, this.y + 1, transform, transform, energyOffset, this.height-2);
+                this.blit(poseStack, this.x + 1, this.y + 1, transform, transform, energyOffset, this.height - 2);
+            }
         }
 
         if (this.isHoveredOrFocused()) {
