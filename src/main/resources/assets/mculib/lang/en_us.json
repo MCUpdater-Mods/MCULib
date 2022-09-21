@@ -6,5 +6,9 @@
   "gui.processenhancement.items": "Items",
   "gui.processenhancement.energy": "Energy",
   "gui.processenhancement.fluids": "Fluids",
-  "gui.processenhancement.automated": "Automated"
+  "gui.processenhancement.automated": "Automated",
+  "side.closed.tooltip": "Closed",
+  "side.passive.tooltip": "Open",
+  "side.automated.tooltip": "Automated",
+  "side.sneaky.tooltip": "Side to interact with"
 }

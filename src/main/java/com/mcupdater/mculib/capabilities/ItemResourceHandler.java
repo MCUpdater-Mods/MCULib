@@ -269,7 +269,7 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
         @NotNull
         @Override
         public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-            if (!insertAllowed)
+            if (!insertAllowed || Arrays.stream(ItemResourceHandler.this.inputSlots).noneMatch(value -> slot == value))
                 return stack;
 
             if (stack.isEmpty())
@@ -340,7 +340,7 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
         @NotNull
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            if (!extractAllowed)
+            if (!extractAllowed || Arrays.stream(ItemResourceHandler.this.outputSlots).noneMatch(value -> slot == value))
                 return ItemStack.EMPTY;
 
             if (amount == 0)

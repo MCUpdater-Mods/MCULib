@@ -204,7 +204,14 @@ public class ConfigPanel extends AbstractContainerWidget {
             if (tempEntity != null)
                 renderCaps(pPoseStack, yOffset, tempEntity);
             yOffset += 10;
+            this.renderTooltips(pPoseStack, pMouseX, pMouseY);
         }
+    }
+
+    private void renderTooltips(PoseStack pPoseStack, int pMouseX, int pMouseY) {
+       for (SideButtonGroup group : this.buttons) {
+           group.renderTooltips(pPoseStack, pMouseX, pMouseY);
+       }
     }
 
     private void renderCaps(PoseStack pPoseStack, int yOffset, BlockEntity tempEntity) {
@@ -267,7 +274,7 @@ public class ConfigPanel extends AbstractContainerWidget {
                 InputOutputSettings ioSettings = entity.getResourceHandler(ConfigPanel.this.selectedResource).getIOSettings(this.side);
                 Direction newValue = Direction.values()[(ioSettings.getInputAutomatedSide().ordinal()+1) % Direction.values().length];
                 ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, true, ioSettings.getInputSetting(), newValue));
-            });
+            }, new TranslatableComponent("side.sneaky.tooltip"));
             this.outputModeButton = new UpdatableImageButton(ConfigPanel.this.x + 105, ConfigPanel.this.y + 5 + yOffset, 14, 14, 16, 16, TextComponent.EMPTY, (button) -> {
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
@@ -281,7 +288,7 @@ public class ConfigPanel extends AbstractContainerWidget {
                 InputOutputSettings ioSettings = entity.getResourceHandler(ConfigPanel.this.selectedResource).getIOSettings(this.side);
                 Direction newValue = Direction.values()[(ioSettings.getOutputAutomatedSide().ordinal()+1) % Direction.values().length];
                 ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, false, ioSettings.getOutputSetting(), newValue));
-            });
+            }, new TranslatableComponent("side.sneaky.tooltip"));
             setTestValues();
         }
 
@@ -295,11 +302,11 @@ public class ConfigPanel extends AbstractContainerWidget {
         public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
             Font font = Minecraft.getInstance().font;
             font.draw(pPoseStack, "In:", ConfigPanel.this.x + 5, ConfigPanel.this.y + 8 + yOffset, 0xff000000);
-            this.inputModeButton.renderButton(pPoseStack, pMouseX, pMouseY, pPartialTick);
-            this.inputSideButton.renderButton(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.inputModeButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.inputSideButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
             font.draw(pPoseStack, "Out:", ConfigPanel.this.x + 85, ConfigPanel.this.y + 8 + yOffset, 0xff000000);
-            this.outputModeButton.renderButton(pPoseStack, pMouseX, pMouseY, pPartialTick);
-            this.outputSideButton.renderButton(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.outputModeButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.outputSideButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
 
         public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
@@ -319,10 +326,20 @@ public class ConfigPanel extends AbstractContainerWidget {
                 case PASSIVE -> ALLOWED;
                 case AUTOMATED -> AUTOMATED;
             });
+            inputModeButton.setTooltip(switch (ioSettings.getInputSetting()) {
+                default -> new TranslatableComponent("side.closed.tooltip");
+                case PASSIVE -> new TranslatableComponent("side.passive.tooltip");
+                case AUTOMATED -> new TranslatableComponent("side.automated.tooltip");
+            });
             outputModeButton.setResourceLocation(switch (ioSettings.getOutputSetting()) {
                 default -> CLOSED;
                 case PASSIVE -> ALLOWED;
                 case AUTOMATED -> AUTOMATED;
+            });
+            outputModeButton.setTooltip(switch (ioSettings.getOutputSetting()) {
+                default -> new TranslatableComponent("side.closed.tooltip");
+                case PASSIVE -> new TranslatableComponent("side.passive.tooltip");
+                case AUTOMATED -> new TranslatableComponent("side.automated.tooltip");
             });
             inputSideButton.setMessage(new TextComponent(StringUtils.capitalize(ioSettings.getInputAutomatedSide().getName())));
             outputSideButton.setMessage(new TextComponent(StringUtils.capitalize(ioSettings.getOutputAutomatedSide().getName())));
@@ -330,6 +347,13 @@ public class ConfigPanel extends AbstractContainerWidget {
 
         public Direction getSide() {
             return this.side;
+        }
+
+        public void renderTooltips(PoseStack pPoseStack, int pMouseX, int pMouseY) {
+            if (inputModeButton.isHoveredOrFocused()) inputModeButton.renderToolTip(pPoseStack, pMouseX, pMouseY);
+            if (inputSideButton.isHoveredOrFocused()) inputSideButton.renderToolTip(pPoseStack, pMouseX, pMouseY);
+            if (outputModeButton.isHoveredOrFocused()) outputModeButton.renderToolTip(pPoseStack, pMouseX, pMouseY);
+            if (outputSideButton.isHoveredOrFocused()) outputSideButton.renderToolTip(pPoseStack, pMouseX, pMouseY);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.mcupdater.mculib.gui;
 
+import com.mcupdater.mculib.MCULib;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
@@ -33,9 +34,6 @@ public class UpdatableImageButton extends Button {
         RenderSystem.setShaderTexture(0, this.resourceLocation);
         RenderSystem.enableDepthTest();
         blit(pPoseStack, this.x + 2, this.y + 2, this.width - 4, this.height - 4, 0f, 0f, 16, 16, this.textureWidth, this.textureHeight);
-        if (this.isHovered) {
-            this.renderToolTip(pPoseStack, pMouseX, pMouseY);
-        }
     }
 
     private void drawButton(PoseStack pPoseStack) {
@@ -48,7 +46,6 @@ public class UpdatableImageButton extends Button {
 
     @Override
     public void renderToolTip(PoseStack pPoseStack, int pMouseX, int pMouseY) {
-        super.renderToolTip(pPoseStack, pMouseX, pMouseY);
         if (Minecraft.getInstance().screen != null) {
             Minecraft.getInstance().screen.renderComponentTooltip(pPoseStack, Collections.singletonList(this.tooltip), pMouseX, pMouseY);
         }

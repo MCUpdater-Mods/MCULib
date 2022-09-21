@@ -133,9 +133,8 @@ public abstract class AbstractConfigurableBlockEntity extends BlockEntity implem
 
     public void notifyClients() {
         if (this.level != null && !this.level.isClientSide) {
-            for (Connection conn : this.level.getServer().getConnection().getConnections()) {
-                conn.send(this.getUpdatePacket());
-            }
+            BlockState blockState = this.level.getBlockState(this.worldPosition);
+            this.level.sendBlockUpdated(this.worldPosition, blockState, blockState, 3);
         }
     }
 
