@@ -59,6 +59,12 @@ public abstract class AbstractMachineBlockEntity extends AbstractConfigurableBlo
                     super.tick();
                     return;
                 }
+            } else {
+                boolean currentState = pBlockState.getValue((AbstractMachineBlock.ACTIVE));
+                if (currentState) {
+                    pBlockState = pBlockState.setValue(AbstractMachineBlock.ACTIVE, false);
+                    pLevel.setBlock(pPos, pBlockState, 3);
+                }
             }
         }
         super.tick();

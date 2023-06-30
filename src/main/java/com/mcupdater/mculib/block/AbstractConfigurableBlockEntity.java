@@ -142,6 +142,7 @@ public abstract class AbstractConfigurableBlockEntity extends BlockEntity implem
         for (AbstractResourceHandler handler : this.configMap.values()) {
             if (handler.tickHandler(this.level, this.worldPosition)) {
                 this.setChanged();
+                this.notifyClients();
             }
         }
     }

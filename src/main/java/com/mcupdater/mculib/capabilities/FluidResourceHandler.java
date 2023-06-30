@@ -32,8 +32,8 @@ public class FluidResourceHandler extends AbstractResourceHandler {
     private List<Integer> exposedTanks = new ArrayList<Integer>();
     private List<Integer> inputTanks = new ArrayList<Integer>();
     private List<Integer> outputTanks = new ArrayList<Integer>();
-    private FluidStackValidator insertFunction = (tank, fluid) -> true;
-    private FluidStackValidator extractFunction = (tank, fluid) -> true;
+    private FluidStackValidator insertFunction = (tank, fluid) -> inputTanks.contains(tank);
+    private FluidStackValidator extractFunction = (tank, fluid) -> outputTanks.contains(tank);
     private boolean isDirty;
     private Function<Player,Boolean> playerValidator;
     protected Map<Direction, ConfigurableFluidHandler> sideConfigs;
@@ -107,9 +107,11 @@ public class FluidResourceHandler extends AbstractResourceHandler {
                         for (int inputTank : inputTanks) {
                             if (!remoteHandler.getFluidInTank(remoteTank).isEmpty() && this.internalHandler.isFluidValid(inputTank, remoteHandler.getFluidInTank(remoteTank))) {
                                 FluidStack fluidStack = remoteHandler.drain(remoteHandler.getFluidInTank(remoteTank).getAmount(), IFluidHandler.FluidAction.SIMULATE);
-                                int fillAmount = this.internalHandler.fill(inputTank, fluidStack, IFluidHandler.FluidAction.EXECUTE);
-                                fluidStack.setAmount(fillAmount);
-                                remoteHandler.drain(fluidStack, IFluidHandler.FluidAction.EXECUTE);
+                                if (!fluidStack.isEmpty()) {
+                                    int fillAmount = this.internalHandler.fill(inputTank, fluidStack, IFluidHandler.FluidAction.EXECUTE);
+                                    fluidStack.setAmount(fillAmount);
+                                    remoteHandler.drain(fluidStack, IFluidHandler.FluidAction.EXECUTE);
+                                }
                             }
                         }
                     }
@@ -123,9 +125,11 @@ public class FluidResourceHandler extends AbstractResourceHandler {
                         for (int outputTank : outputTanks) {
                             if (!this.internalHandler.getFluidInTank(outputTank).isEmpty() && remoteHandler.isFluidValid(outputTank, this.internalHandler.getFluidInTank(outputTank))) {
                                 FluidStack fluidStack = this.internalHandler.drain(outputTank, this.internalHandler.getFluidInTank(outputTank).getAmount(), IFluidHandler.FluidAction.SIMULATE);
-                                int fillAmount = remoteHandler.fill(fluidStack, IFluidHandler.FluidAction.EXECUTE);
-                                fluidStack.setAmount(fillAmount);
-                                this.internalHandler.drain(outputTank, fluidStack, IFluidHandler.FluidAction.EXECUTE);
+                                if (!fluidStack.isEmpty()) {
+                                    int fillAmount = remoteHandler.fill(fluidStack, IFluidHandler.FluidAction.EXECUTE);
+                                    fluidStack.setAmount(fillAmount);
+                                    this.internalHandler.drain(outputTank, fluidStack, IFluidHandler.FluidAction.EXECUTE);
+                                }
                             }
                         }
                     }
@@ -221,8 +225,9 @@ public class FluidResourceHandler extends AbstractResourceHandler {
             if (insertAllowed) {
                 for (int tankIndex : FluidResourceHandler.this.inputTanks) {
                     if (FluidResourceHandler.this.insertFunction.isStackValid(tankIndex, resource)) {
+                        int fillAmount = FluidResourceHandler.this.tanks.get(tankIndex).fill(resource, action);
                         markDirty();
-                        return FluidResourceHandler.this.tanks.get(tankIndex).fill(resource, action);
+                        return fillAmount;
                     }
                 }
             }
@@ -232,11 +237,18 @@ public class FluidResourceHandler extends AbstractResourceHandler {
         public int fill(int tankId, FluidStack resource, FluidAction action) {
             if (insertAllowed) {
                 if (FluidResourceHandler.this.insertFunction.isStackValid(tankId, resource)) {
+                    int fillAmount = FluidResourceHandler.this.tanks.get(tankId).fill(resource, action);
                     markDirty();
-                    return FluidResourceHandler.this.tanks.get(tankId).fill(resource, action);
+                    return fillAmount;
                 }
             }
             return 0;
+        }
+
+        public int forceFill(int tankId, FluidStack resource, FluidAction action) {
+            int fillAmount = FluidResourceHandler.this.tanks.get(tankId).fill(resource, action);
+            markDirty();
+            return fillAmount;
         }
 
         @NotNull
@@ -245,8 +257,9 @@ public class FluidResourceHandler extends AbstractResourceHandler {
             if (extractAllowed) {
                 for (int tankIndex : FluidResourceHandler.this.outputTanks) {
                     if (FluidResourceHandler.this.extractFunction.isStackValid(tankIndex, resource)) {
+                        FluidStack extracted = FluidResourceHandler.this.tanks.get(tankIndex).drain(resource, action);
                         markDirty();
-                        return FluidResourceHandler.this.tanks.get(tankIndex).drain(resource, action);
+                        return extracted;
                     }
                 }
             }
@@ -256,8 +269,9 @@ public class FluidResourceHandler extends AbstractResourceHandler {
         public FluidStack drain(int tankId, FluidStack resource, FluidAction action) {
             if (extractAllowed) {
                 if (FluidResourceHandler.this.extractFunction.isStackValid(tankId, resource)) {
+                    FluidStack extracted = FluidResourceHandler.this.tanks.get(tankId).drain(resource, action);
                     markDirty();
-                    return FluidResourceHandler.this.tanks.get(tankId).drain(resource, action);
+                    return extracted;
                 }
             }
             return FluidStack.EMPTY;
@@ -286,6 +300,14 @@ public class FluidResourceHandler extends AbstractResourceHandler {
                     outputStack = FluidResourceHandler.this.tanks.get(tankId).drain(maxDrain, action);
                     if (!outputStack.isEmpty()) markDirty();
             }
+            return outputStack;
+        }
+
+        public FluidStack forceDrain(int tankId, int maxDrain, FluidAction action) {
+            FluidStack outputStack = FluidStack.EMPTY;
+            if (FluidResourceHandler.this.tanks.size() == 0) return outputStack;
+            outputStack = FluidResourceHandler.this.tanks.get(tankId).drain(maxDrain, action);
+            if (!outputStack.isEmpty()) markDirty();
             return outputStack;
         }
 

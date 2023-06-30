@@ -56,9 +56,9 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
 
     public void initHandlers() {
         for (Direction side : Direction.values()) {
-            sideConfigs.put(side, new ConfigurableItemHandler(true,true));
+            sideConfigs.put(side, new ConfigurableItemHandler(true,true, false));
         }
-        this.internalHandler = new ConfigurableItemHandler(true, true);
+        this.internalHandler = new ConfigurableItemHandler(true, true, true);
     }
 
     public void setInsertFunction(ItemStackValidator function) {
@@ -242,12 +242,14 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
     }
 
     public class ConfigurableItemHandler implements IItemHandlerModifiable {
+        private final boolean bypass;
         private boolean insertAllowed;
         private boolean extractAllowed;
 
-        public ConfigurableItemHandler(boolean insertAllowed, boolean extractAllowed) {
+        public ConfigurableItemHandler(boolean insertAllowed, boolean extractAllowed, boolean bypass) {
             this.insertAllowed = insertAllowed;
             this.extractAllowed = extractAllowed;
+            this.bypass = bypass;
         }
 
         @Override
@@ -269,8 +271,10 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
         @NotNull
         @Override
         public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-            if (!insertAllowed || Arrays.stream(ItemResourceHandler.this.inputSlots).noneMatch(value -> slot == value))
-                return stack;
+            if (!bypass) {
+                if (!insertAllowed || Arrays.stream(ItemResourceHandler.this.inputSlots).noneMatch(value -> slot == value))
+                    return stack;
+            }
 
             if (stack.isEmpty())
                 return ItemStack.EMPTY;
@@ -340,8 +344,10 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
         @NotNull
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            if (!extractAllowed || Arrays.stream(ItemResourceHandler.this.outputSlots).noneMatch(value -> slot == value))
-                return ItemStack.EMPTY;
+            if (!bypass) {
+                if (!extractAllowed || Arrays.stream(ItemResourceHandler.this.outputSlots).noneMatch(value -> slot == value))
+                    return ItemStack.EMPTY;
+            }
 
             if (amount == 0)
                 return ItemStack.EMPTY;
