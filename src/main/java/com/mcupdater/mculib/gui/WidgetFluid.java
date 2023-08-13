@@ -1,20 +1,15 @@
 package com.mcupdater.mculib.gui;
 
 import com.mcupdater.mculib.helpers.RenderHelper;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
-import java.util.Collections;
 
 public class WidgetFluid extends AbstractWidget {
     private final Minecraft minecraft;
@@ -26,7 +21,7 @@ public class WidgetFluid extends AbstractWidget {
     private int COLOR_BOTTOMRIGHT = 0x7fffffff;
 
     public WidgetFluid(int x, int y, int width, int height, IFluidHandler handler, int tankIndex) {
-        super(x, y, width, height, TextComponent.EMPTY);
+        super(x, y, width, height, Component.empty());
         this.minecraft = Minecraft.getInstance();
         this.fluidHandler = handler;
         this.tankIndex = tankIndex;
@@ -57,8 +52,8 @@ public class WidgetFluid extends AbstractWidget {
     @Override
     public void renderToolTip(@Nonnull PoseStack poseStack, int x, int y){
         super.renderToolTip(poseStack, x, y);
-        Component fluid = fluidHandler.getFluidInTank(tankIndex).isEmpty() ? new TextComponent("Empty") : new TranslatableComponent(fluidHandler.getFluidInTank(tankIndex).getFluid().getAttributes().getTranslationKey());
-        Component volume = new TextComponent(fluidHandler.getFluidInTank(tankIndex).getAmount() + " / " + fluidHandler.getTankCapacity(tankIndex) + " mB");
+        Component fluid = fluidHandler.getFluidInTank(tankIndex).isEmpty() ? Component.literal("Empty") : Component.translatable(fluidHandler.getFluidInTank(tankIndex).getFluid().getFluidType().getDescriptionId());
+        Component volume = Component.literal(fluidHandler.getFluidInTank(tankIndex).getAmount() + " / " + fluidHandler.getTankCapacity(tankIndex) + " mB");
         if (this.minecraft.screen != null) {
             this.minecraft.screen.renderComponentTooltip(poseStack, Arrays.asList(fluid, volume), x, y);
         }

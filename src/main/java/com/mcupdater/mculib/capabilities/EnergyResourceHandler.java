@@ -1,6 +1,5 @@
 package com.mcupdater.mculib.capabilities;
 
-import com.mcupdater.mculib.MCULib;
 import com.mcupdater.mculib.inventory.InputOutputSettings;
 import com.mcupdater.mculib.inventory.SideSetting;
 import net.minecraft.core.BlockPos;
@@ -9,8 +8,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.EnergyStorage;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
@@ -107,7 +106,7 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
 
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap.equals(CapabilityEnergy.ENERGY)) {
+        if (cap.equals(ForgeCapabilities.ENERGY)) {
             if (side != null) {
                 return this.getEnergyHandler(side).cast();
             } else {
@@ -133,8 +132,8 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
             for (Direction side : Direction.values()) {
                 if (this.getIOSettings(side) != null && this.getIOSettings(side).getOutputSetting().equals(SideSetting.AUTOMATED)) {
                     BlockEntity tile = pLevel.getBlockEntity(pBlockPos.relative(side));
-                    if (tile != null && tile.getCapability(CapabilityEnergy.ENERGY, this.getIOSettings(side).getOutputAutomatedSide()).isPresent()) {
-                        IEnergyStorage externalStorage = tile.getCapability(CapabilityEnergy.ENERGY, this.getIOSettings(side).getOutputAutomatedSide()).orElse(new EnergyStorage(0));
+                    if (tile != null && tile.getCapability(ForgeCapabilities.ENERGY, this.getIOSettings(side).getOutputAutomatedSide()).isPresent()) {
+                        IEnergyStorage externalStorage = tile.getCapability(ForgeCapabilities.ENERGY, this.getIOSettings(side).getOutputAutomatedSide()).orElse(new EnergyStorage(0));
                         if (externalStorage.canReceive() && externalStorage.getEnergyStored() < externalStorage.getMaxEnergyStored()) {
                             validReceivers++;
                             receivers.add(externalStorage);

@@ -14,8 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -70,7 +70,7 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
     }
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap.equals(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)) {
+        if (cap.equals(ForgeCapabilities.ITEM_HANDLER)) {
             if (side != null) {
                 return this.getItemHandler(side).cast();
             } else {
@@ -90,8 +90,8 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
             InputOutputSettings ioSettings = this.sideIOMap.get(side);
             if (ioSettings != null && ioSettings.getInputSetting().equals(SideSetting.AUTOMATED)) {
                 BlockEntity remoteBlock = pLevel.getBlockEntity(pBlockPos.relative(side));
-                if (remoteBlock != null && remoteBlock.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, ioSettings.getInputAutomatedSide()).isPresent()) {
-                    IItemHandler remoteHandler = remoteBlock.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, ioSettings.getInputAutomatedSide()).orElse(new EmptyHandler());
+                if (remoteBlock != null && remoteBlock.getCapability(ForgeCapabilities.ITEM_HANDLER, ioSettings.getInputAutomatedSide()).isPresent()) {
+                    IItemHandler remoteHandler = remoteBlock.getCapability(ForgeCapabilities.ITEM_HANDLER, ioSettings.getInputAutomatedSide()).orElse(new EmptyHandler());
                     for (int remoteSlot = 0; remoteSlot < remoteHandler.getSlots(); remoteSlot++) {
                         for (int inputSlot : inputSlots) {
                             if (!remoteHandler.getStackInSlot(remoteSlot).isEmpty() && this.canPlaceItem(inputSlot, remoteHandler.getStackInSlot(remoteSlot))) {
@@ -106,8 +106,8 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
             }
             if (ioSettings != null && ioSettings.getOutputSetting().equals(SideSetting.AUTOMATED)) {
                 BlockEntity remoteBlock = pLevel.getBlockEntity(pBlockPos.relative(side));
-                if (remoteBlock != null && remoteBlock.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, ioSettings.getOutputAutomatedSide()).isPresent()) {
-                    IItemHandler remoteHandler = remoteBlock.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, ioSettings.getOutputAutomatedSide()).orElse(new EmptyHandler());
+                if (remoteBlock != null && remoteBlock.getCapability(ForgeCapabilities.ITEM_HANDLER, ioSettings.getOutputAutomatedSide()).isPresent()) {
+                    IItemHandler remoteHandler = remoteBlock.getCapability(ForgeCapabilities.ITEM_HANDLER, ioSettings.getOutputAutomatedSide()).orElse(new EmptyHandler());
                     for (int remoteSlot = 0; remoteSlot < remoteHandler.getSlots(); remoteSlot++) {
                         for (int outputSlot : outputSlots) {
                             if (!this.getItem(outputSlot).isEmpty() && this.canTakeItemThroughFace(outputSlot, this.getItem(outputSlot), side) && remoteHandler.isItemValid(remoteSlot, this.internalHandler.getStackInSlot(outputSlot))) {
@@ -369,6 +369,9 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
                 int m = Math.min(stackInSlot.getCount(), amount);
 
                 ItemStack extracted = ItemResourceHandler.this.removeItem(slot, m);
+                if (ItemResourceHandler.this.getItem(slot).getCount() == 0) {
+                    ItemResourceHandler.this.setItem(slot, ItemStack.EMPTY);
+                }
                 ItemResourceHandler.this.setChanged();
                 return extracted;
             }

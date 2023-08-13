@@ -12,9 +12,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.EmptyFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
@@ -76,7 +76,7 @@ public class FluidResourceHandler extends AbstractResourceHandler {
 
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap.equals(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)) {
+        if (cap.equals(ForgeCapabilities.FLUID_HANDLER)) {
             if (side != null) {
                 return this.getFluidHandler(side).cast();
             } else {
@@ -101,8 +101,8 @@ public class FluidResourceHandler extends AbstractResourceHandler {
             InputOutputSettings ioSettings = this.sideIOMap.get(side);
             if (ioSettings != null && ioSettings.getInputSetting().equals(SideSetting.AUTOMATED)) {
                 BlockEntity remoteBlock = pLevel.getBlockEntity(pBlockPos.relative(side));
-                if (remoteBlock != null && remoteBlock.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, ioSettings.getInputAutomatedSide()).isPresent()) {
-                    IFluidHandler remoteHandler = remoteBlock.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, ioSettings.getInputAutomatedSide()).orElse(EmptyFluidHandler.INSTANCE);
+                if (remoteBlock != null && remoteBlock.getCapability(ForgeCapabilities.FLUID_HANDLER, ioSettings.getInputAutomatedSide()).isPresent()) {
+                    IFluidHandler remoteHandler = remoteBlock.getCapability(ForgeCapabilities.FLUID_HANDLER, ioSettings.getInputAutomatedSide()).orElse(EmptyFluidHandler.INSTANCE);
                     for (int remoteTank = 0; remoteTank < remoteHandler.getTanks(); remoteTank++) {
                         for (int inputTank : inputTanks) {
                             if (!remoteHandler.getFluidInTank(remoteTank).isEmpty() && this.internalHandler.isFluidValid(inputTank, remoteHandler.getFluidInTank(remoteTank))) {
@@ -119,8 +119,8 @@ public class FluidResourceHandler extends AbstractResourceHandler {
             }
             if (ioSettings != null && ioSettings.getOutputSetting().equals(SideSetting.AUTOMATED)) {
                 BlockEntity remoteBlock = pLevel.getBlockEntity(pBlockPos.relative(side));
-                if (remoteBlock != null && remoteBlock.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, ioSettings.getInputAutomatedSide()).isPresent()) {
-                    IFluidHandler remoteHandler = remoteBlock.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, ioSettings.getOutputAutomatedSide()).orElse(EmptyFluidHandler.INSTANCE);
+                if (remoteBlock != null && remoteBlock.getCapability(ForgeCapabilities.FLUID_HANDLER, ioSettings.getInputAutomatedSide()).isPresent()) {
+                    IFluidHandler remoteHandler = remoteBlock.getCapability(ForgeCapabilities.FLUID_HANDLER, ioSettings.getOutputAutomatedSide()).orElse(EmptyFluidHandler.INSTANCE);
                     for (int remoteTank = 0; remoteTank < remoteHandler.getTanks(); remoteTank++) {
                         for (int outputTank : outputTanks) {
                             if (!this.internalHandler.getFluidInTank(outputTank).isEmpty() && remoteHandler.isFluidValid(outputTank, this.internalHandler.getFluidInTank(outputTank))) {

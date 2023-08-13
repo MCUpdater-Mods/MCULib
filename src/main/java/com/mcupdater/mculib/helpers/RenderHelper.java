@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidAttributes;
+import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.fluids.FluidStack;
 
 public class RenderHelper {
@@ -29,8 +29,8 @@ public class RenderHelper {
             }
 
             TextureAtlasSprite fluidStillSprite = getStillFluidSprite(fluidStack);
-            FluidAttributes attributes = fluid.getAttributes();
-            int fluidColor = attributes.getColor(fluidStack);
+            IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
+            int fluidColor = renderProperties.getTintColor(fluidStack);
             int amount = fluidStack.getAmount();
             int scaledAmount = (amount * height) / capacity;
             if (amount > 0 && scaledAmount < 1) scaledAmount = 1;
@@ -46,8 +46,8 @@ public class RenderHelper {
     private static TextureAtlasSprite getStillFluidSprite(FluidStack fluidStack) {
         Minecraft minecraft = Minecraft.getInstance();
         Fluid fluid = fluidStack.getFluid();
-        FluidAttributes attributes = fluid.getAttributes();
-        ResourceLocation fluidStill = attributes.getStillTexture(fluidStack);
+        IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
+        ResourceLocation fluidStill = renderProperties.getStillTexture(fluidStack);
         return minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(fluidStill);
     }
 

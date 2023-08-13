@@ -6,7 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.energy.IEnergyStorage;
 
@@ -23,7 +23,7 @@ public class WidgetPower extends AbstractWidget {
     private int COLOR_BOTTOMRIGHT = 0x7fffffff;
 
     public WidgetPower(int x, int y, int width, int height, IEnergyStorage handler, Orientation orientation) {
-        super(x, y, width, height, TextComponent.EMPTY);
+        super(x, y, width, height, Component.empty());
         this.minecraft = Minecraft.getInstance();
         this.energyHandler = handler;
         this.orientation = orientation;
@@ -72,7 +72,7 @@ public class WidgetPower extends AbstractWidget {
         super.renderToolTip(poseStack, x, y);
         String msg = energyHandler.getEnergyStored() + " / " + energyHandler.getMaxEnergyStored() + " FE";
         if (this.minecraft.screen != null) {
-            this.minecraft.screen.renderComponentTooltip(poseStack, Collections.singletonList(new TextComponent(msg)), x, y);
+            this.minecraft.screen.renderComponentTooltip(poseStack, Collections.singletonList(Component.literal(msg)), x, y);
         }
     }
 

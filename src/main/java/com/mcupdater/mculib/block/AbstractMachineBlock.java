@@ -69,7 +69,7 @@ public abstract class AbstractMachineBlock extends BaseEntityBlock {
             BlockEntity blockEntity = pLevel.getBlockEntity(pPos);
             if (blockEntity instanceof AbstractMachineBlockEntity) {
                 Map<Direction, Component> adjacentNames = DataHelper.getAdjacentNames(pLevel, pPos);
-                NetworkHooks.openGui((ServerPlayer) pPlayer, (MenuProvider) blockEntity, (buf -> {
+                NetworkHooks.openScreen((ServerPlayer) pPlayer, (MenuProvider) blockEntity, (buf -> {
                     buf.writeBlockPos(pPos);
                     DataHelper.writeDirectionMap(buf,adjacentNames);
                 }));

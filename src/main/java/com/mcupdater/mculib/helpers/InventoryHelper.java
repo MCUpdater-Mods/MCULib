@@ -7,7 +7,7 @@ import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.EmptyHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
@@ -40,8 +40,8 @@ public class InventoryHelper {
     }
 
     public static IItemHandler getWrapper(BlockEntity tileEntity, Direction side) {
-        if (tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).isPresent()) {
-            return tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).orElse(EmptyHandler.INSTANCE);
+        if (tileEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).isPresent()) {
+            return tileEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).orElse(EmptyHandler.INSTANCE);
         } else if (tileEntity instanceof WorldlyContainer) {
             return new SidedInvWrapper((WorldlyContainer) tileEntity, side);
         } else if (tileEntity instanceof Container) {
