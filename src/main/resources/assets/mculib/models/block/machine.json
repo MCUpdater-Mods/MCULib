@@ -1,6 +1,7 @@
 {
 	"credit": "Made with Blockbench",
 	"parent": "block/orientable",
+	"render_type": "cutout_mipped",
 	"textures": {
 		"frame": "minecraft:block/iron_block",
 		"corner": "minecraft:block/gold_block",
