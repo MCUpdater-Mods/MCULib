@@ -11,12 +11,14 @@ public class InputOutputSettings {
     private SideSetting outputSetting;
     private Direction inputAutomatedSide;
     private Direction outputAutomatedSide;
+    private Byte priority;
 
-    public InputOutputSettings(SideSetting inputSetting, Direction inputAutomatedSide, SideSetting outputSetting, Direction outputAutomatedSide) {
+    public InputOutputSettings(SideSetting inputSetting, Direction inputAutomatedSide, SideSetting outputSetting, Direction outputAutomatedSide, Byte priority) {
         this.inputSetting = inputSetting;
         this.inputAutomatedSide = inputAutomatedSide;
         this.outputSetting = outputSetting;
         this.outputAutomatedSide = outputAutomatedSide;
+        this.priority = priority;
     }
 
     public SideSetting getInputSetting() {
@@ -51,10 +53,18 @@ public class InputOutputSettings {
         this.outputAutomatedSide = outputAutomatedSide;
     }
 
+    public Byte getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Byte priority) {
+        this.priority = priority;
+    }
+
     public static InputOutputSettings loadFromNBT(CompoundTag compound) {
         if (compound.contains("SideSetting")) {
             CompoundTag struct = compound.getCompound("SideSetting");
-            return new InputOutputSettings(SideSetting.values()[struct.getByte("inputSetting")],Direction.values()[struct.getByte("inputAutoSide")],SideSetting.values()[struct.getByte("outputSetting")],Direction.values()[struct.getByte("outputAutoSide")]);
+            return new InputOutputSettings(SideSetting.values()[struct.getByte("inputSetting")],Direction.values()[struct.getByte("inputAutoSide")],SideSetting.values()[struct.getByte("outputSetting")],Direction.values()[struct.getByte("outputAutoSide")],struct.getByte("priority"));
         } else {
             return null;
         }
@@ -78,6 +88,7 @@ public class InputOutputSettings {
         struct.putByte("inputAutoSide", (byte) settings.getInputAutomatedSide().ordinal());
         struct.putByte("outputSetting", (byte) settings.getOutputSetting().ordinal());
         struct.putByte("outputAutoSide", (byte) settings.getOutputAutomatedSide().ordinal());
+        struct.putByte("priority", settings.getPriority());
         compound.put("SideSetting", struct);
     }
 
@@ -92,8 +103,9 @@ public class InputOutputSettings {
     public static Map<Direction, InputOutputSettings> getDefaultMap() {
         Map<Direction, InputOutputSettings> output = new HashMap<>(6);
         for (Direction side : Direction.values()) {
-            output.put(side,new InputOutputSettings(SideSetting.PASSIVE,side.getOpposite(),SideSetting.PASSIVE,side.getOpposite()));
+            output.put(side,new InputOutputSettings(SideSetting.PASSIVE,side.getOpposite(),SideSetting.PASSIVE,side.getOpposite(), (byte) 0));
         }
         return output;
     }
+
 }

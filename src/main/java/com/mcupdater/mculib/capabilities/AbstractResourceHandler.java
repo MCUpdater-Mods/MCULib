@@ -10,7 +10,9 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractResourceHandler {
@@ -38,4 +40,17 @@ public abstract class AbstractResourceHandler {
     public void save(CompoundTag compound) {
         InputOutputSettings.saveMapToNBT(compound, this.sideIOMap);
     }
+
+    public List<Direction> getSortedDirections(Map<Direction, InputOutputSettings> sideIOMap) {
+        List<Direction> directions = new ArrayList<>(List.of(Direction.values()));
+        directions.sort((o1, o2) -> {
+            int priority = sideIOMap.get(o1).getPriority().compareTo(sideIOMap.get(o2).getPriority()) * -1;
+            if (priority == 0) {
+                return o1.compareTo(o2);
+            }
+            return priority;
+        });
+        return directions;
+    }
+
 }

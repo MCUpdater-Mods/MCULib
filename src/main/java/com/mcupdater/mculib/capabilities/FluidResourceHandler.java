@@ -97,7 +97,8 @@ public class FluidResourceHandler extends AbstractResourceHandler {
     @Override
     public boolean tickHandler(Level pLevel, BlockPos pBlockPos) {
         // Do push and pull
-        for (Direction side : Direction.values()) {
+        List<Direction> directions = getSortedDirections(this.sideIOMap);
+        for (Direction side : directions) {
             InputOutputSettings ioSettings = this.sideIOMap.get(side);
             if (ioSettings != null && ioSettings.getInputSetting().equals(SideSetting.AUTOMATED)) {
                 BlockEntity remoteBlock = pLevel.getBlockEntity(pBlockPos.relative(side));

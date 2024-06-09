@@ -59,7 +59,7 @@ public abstract class AbstractConfigurableBlockEntity extends BlockEntity implem
         return this.name;
     }
 
-    public void updateSideConfig(String resourceType, Direction side, boolean inbound, SideSetting sideSetting, Direction sneakySide) {
+    public void updateSideConfig(String resourceType, Direction side, boolean inbound, SideSetting sideSetting, Direction sneakySide, Byte priority) {
         AbstractResourceHandler handler = this.configMap.get(resourceType);
         if (handler != null) {
             InputOutputSettings ioSettings = handler.getIOSettings(side);
@@ -70,6 +70,7 @@ public abstract class AbstractConfigurableBlockEntity extends BlockEntity implem
                 ioSettings.setOutputSetting(sideSetting);
                 ioSettings.setOutputAutomatedSide(sneakySide);
             }
+            ioSettings.setPriority(priority);
             handler.updateIOSettings(side, ioSettings);
             this.configMap.put(resourceType, handler);
             this.setChanged();

@@ -129,7 +129,8 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
             }
             int validReceivers = 0;
             List<IEnergyStorage> receivers = new ArrayList<>();
-            for (Direction side : Direction.values()) {
+            List<Direction> directions = getSortedDirections(this.sideIOMap);
+            for (Direction side : directions) {
                 if (this.getIOSettings(side) != null && this.getIOSettings(side).getOutputSetting().equals(SideSetting.AUTOMATED)) {
                     BlockEntity tile = pLevel.getBlockEntity(pBlockPos.relative(side));
                     if (tile != null && tile.getCapability(ForgeCapabilities.ENERGY, this.getIOSettings(side).getOutputAutomatedSide()).isPresent()) {

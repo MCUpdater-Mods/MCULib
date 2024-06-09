@@ -149,6 +149,7 @@ publish.dependsOn('reobfJar')
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            artifactId = 'mculib'
             artifact jar
         }
     }

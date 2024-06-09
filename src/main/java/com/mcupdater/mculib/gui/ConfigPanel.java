@@ -11,6 +11,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -145,10 +146,6 @@ public class ConfigPanel extends AbstractContainerWidget {
 
         if (this.isVisible()) {
             AbstractConfigurableBlockEntity blockEntity = this.menu.getBlockEntity();
-            for (SideButtonGroup group : this.buttons) {
-                group.updateIOSettings(blockEntity.getResourceHandler(this.selectedResource).getIOSettings(group.getSide()));
-                group.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
-            }
             // Render tabs in reverse order to ensure tooltips render properly
             List<TabWidget> reverseTabs = new ArrayList<>(this.tabs);
             Collections.reverse(reverseTabs);
@@ -164,15 +161,9 @@ public class ConfigPanel extends AbstractContainerWidget {
             if (tempEntity != null)
                 renderCaps(pPoseStack, yOffset, tempEntity);
             yOffset += 10;
-            /*
-            if (tempEntity != null && tempEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).isPresent()) {
-                RenderSystem.setShaderTexture(0, ITEMS);
-                blit(pPoseStack, this.x + 5, this.y + 5 + yOffset, 10, 10, 0f, 0f, 16, 16, 16, 16);
-                this.font.draw(pPoseStack, Component.literal("Items"), this.x + 21, this.y + 5 + yOffset, 0xff000000);
-            }
-            */
             tempEntity = level.getBlockEntity(blockPos.above());
             yOffset += 16;
+            this.fillGradient(pPoseStack, this.x+1, this.y + yOffset + 3, this.x + this.width - 2, this.y + yOffset + 29, 0x33000000, 0x33000000);
             font.draw(pPoseStack, Component.literal("U: ").append(menu.getSideName(Direction.UP)), this.x + 5, this.y + 4 + yOffset, 0xff000000);
             if (tempEntity != null)
                 renderCaps(pPoseStack, yOffset, tempEntity);
@@ -185,6 +176,7 @@ public class ConfigPanel extends AbstractContainerWidget {
             yOffset += 10;
             tempEntity = level.getBlockEntity(blockPos.south());
             yOffset += 16;
+            this.fillGradient(pPoseStack, this.x+1, this.y + yOffset + 3, this.x + this.width - 2, this.y + yOffset + 29, 0x33000000, 0x33000000);
             font.draw(pPoseStack, Component.literal("S: ").append(menu.getSideName(Direction.SOUTH)), this.x + 5, this.y + 4 + yOffset, 0xff000000);
             if (tempEntity != null)
                 renderCaps(pPoseStack, yOffset, tempEntity);
@@ -197,10 +189,15 @@ public class ConfigPanel extends AbstractContainerWidget {
             yOffset += 10;
             tempEntity = level.getBlockEntity(blockPos.east());
             yOffset += 16;
+            this.fillGradient(pPoseStack, this.x+1, this.y + yOffset + 3, this.x + this.width - 2, this.y + yOffset + 29, 0x33000000, 0x33000000);
             font.draw(pPoseStack, Component.literal("E: ").append(menu.getSideName(Direction.EAST)), this.x + 5, this.y + 4 + yOffset, 0xff000000);
             if (tempEntity != null)
                 renderCaps(pPoseStack, yOffset, tempEntity);
             yOffset += 10;
+            for (SideButtonGroup group : this.buttons) {
+                group.updateIOSettings(blockEntity.getResourceHandler(this.selectedResource).getIOSettings(group.getSide()));
+                group.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            }
             this.renderTooltips(pPoseStack, pMouseX, pMouseY);
         }
     }
@@ -250,6 +247,7 @@ public class ConfigPanel extends AbstractContainerWidget {
     public class SideButtonGroup {
         private final Direction side;
         private final int yOffset;
+        private TextButton priorityButton;
         private UpdatableImageButton inputModeButton;
         private UpdatableImageButton outputModeButton;
         private TextButton inputSideButton;
@@ -258,56 +256,72 @@ public class ConfigPanel extends AbstractContainerWidget {
         public SideButtonGroup(Direction side, int yOffset) {
             this.side = side;
             this.yOffset = yOffset;
-            this.inputModeButton = new UpdatableImageButton(ConfigPanel.this.x + 20, ConfigPanel.this.y + 5 + yOffset, 14, 14, 16, 16, Component.empty(), button -> {
+            this.priorityButton = new TextButton(ConfigPanel.this.x + 47, ConfigPanel.this.y + 5 + yOffset, 14, 14, Component.empty(), button -> {
+                int delta = Screen.hasShiftDown() ? -1 : 1;
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
                 InputOutputSettings ioSettings = entity.getResourceHandler(ConfigPanel.this.selectedResource).getIOSettings(this.side);
-                SideSetting newValue = SideSetting.values()[(ioSettings.getInputSetting().ordinal()+1) % SideSetting.values().length];
-                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, true, newValue, ioSettings.getInputAutomatedSide()));
+                Byte newValue = (byte) ((ioSettings.getPriority()+delta) % 6);
+                if (newValue < 0) newValue = 5; // No negative values allowed
+                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, true, ioSettings.getInputSetting(), ioSettings.getInputAutomatedSide(), newValue));
+            }, Component.translatable("side.priority.tooltip"));
+            this.inputModeButton = new UpdatableImageButton(ConfigPanel.this.x + 89, ConfigPanel.this.y + 5 + yOffset, 14, 14, 16, 16, Component.empty(), button -> {
+                int delta = Screen.hasShiftDown() ? -1 : 1;
+                AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
+                BlockPos pos = entity.getBlockPos();
+                InputOutputSettings ioSettings = entity.getResourceHandler(ConfigPanel.this.selectedResource).getIOSettings(this.side);
+                SideSetting newValue = SideSetting.values()[(ioSettings.getInputSetting().ordinal()+delta) % SideSetting.values().length];
+                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, true, newValue, ioSettings.getInputAutomatedSide(), ioSettings.getPriority()));
             });
-            this.inputSideButton = new TextButton(ConfigPanel.this.x + 40, ConfigPanel.this.y + 5 + yOffset, 40, 14, Component.empty(), button -> {
+            this.inputSideButton = new TextButton(ConfigPanel.this.x + 105, ConfigPanel.this.y + 5 + yOffset, 14, 14, Component.empty(), button -> {
+                int delta = Screen.hasShiftDown() ? -1 : 1;
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
                 InputOutputSettings ioSettings = entity.getResourceHandler(ConfigPanel.this.selectedResource).getIOSettings(this.side);
-                Direction newValue = Direction.values()[(ioSettings.getInputAutomatedSide().ordinal()+1) % Direction.values().length];
-                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, true, ioSettings.getInputSetting(), newValue));
+                Direction newValue = Direction.values()[(ioSettings.getInputAutomatedSide().ordinal()+delta) % Direction.values().length];
+                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, true, ioSettings.getInputSetting(), newValue, ioSettings.getPriority()));
             }, Component.translatable("side.sneaky.tooltip"));
-            this.outputModeButton = new UpdatableImageButton(ConfigPanel.this.x + 105, ConfigPanel.this.y + 5 + yOffset, 14, 14, 16, 16, Component.empty(), (button) -> {
+            this.outputModeButton = new UpdatableImageButton(ConfigPanel.this.x + 143, ConfigPanel.this.y + 5 + yOffset, 14, 14, 16, 16, Component.empty(), (button) -> {
+                int delta = Screen.hasShiftDown() ? -1 : 1;
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
                 InputOutputSettings ioSettings = entity.getResourceHandler(ConfigPanel.this.selectedResource).getIOSettings(this.side);
-                SideSetting newValue = SideSetting.values()[(ioSettings.getOutputSetting().ordinal()+1) % SideSetting.values().length];
-                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, false, newValue, ioSettings.getOutputAutomatedSide()));
+                SideSetting newValue = SideSetting.values()[(ioSettings.getOutputSetting().ordinal()+delta) % SideSetting.values().length];
+                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, false, newValue, ioSettings.getOutputAutomatedSide(), ioSettings.getPriority()));
             });
-            this.outputSideButton = new TextButton(ConfigPanel.this.x + 125, ConfigPanel.this.y + 5 + yOffset, 40, 14, Component.empty(), (button) -> {
+            this.outputSideButton = new TextButton(ConfigPanel.this.x + 159, ConfigPanel.this.y + 5 + yOffset, 14, 14, Component.empty(), (button) -> {
+                int delta = Screen.hasShiftDown() ? -1 : 1;
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
                 InputOutputSettings ioSettings = entity.getResourceHandler(ConfigPanel.this.selectedResource).getIOSettings(this.side);
-                Direction newValue = Direction.values()[(ioSettings.getOutputAutomatedSide().ordinal()+1) % Direction.values().length];
-                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, false, ioSettings.getOutputSetting(), newValue));
+                Direction newValue = Direction.values()[(ioSettings.getOutputAutomatedSide().ordinal()+delta) % Direction.values().length];
+                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, false, ioSettings.getOutputSetting(), newValue, ioSettings.getPriority()));
             }, Component.translatable("side.sneaky.tooltip"));
             setTestValues();
         }
 
         private void setTestValues() {
             inputModeButton.setResourceLocation(ALLOWED);
-            inputSideButton.setMessage(Component.literal(StringUtils.capitalize(side.getName())));
+            inputSideButton.setMessage(Component.literal(StringUtils.capitalize(side.getName()).substring(0,1)));
             outputModeButton.setResourceLocation(CLOSED);
-            outputSideButton.setMessage(Component.literal(StringUtils.capitalize(side.getOpposite().getName())));
+            outputSideButton.setMessage(Component.literal(StringUtils.capitalize(side.getOpposite().getName()).substring(0,1)));
         }
 
         public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
             Font font = Minecraft.getInstance().font;
-            font.draw(pPoseStack, "In:", ConfigPanel.this.x + 5, ConfigPanel.this.y + 8 + yOffset, 0xff000000);
+            font.draw(pPoseStack, "Priority:", ConfigPanel.this.x + 5, ConfigPanel.this.y + 8 + yOffset, 0xff000000);
+            this.priorityButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            font.draw(pPoseStack, "In:", ConfigPanel.this.x + 76, ConfigPanel.this.y + 8 + yOffset, 0xff000000);
             this.inputModeButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
             this.inputSideButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
-            font.draw(pPoseStack, "Out:", ConfigPanel.this.x + 85, ConfigPanel.this.y + 8 + yOffset, 0xff000000);
+            font.draw(pPoseStack, "Out:", ConfigPanel.this.x + 124, ConfigPanel.this.y + 8 + yOffset, 0xff000000);
             this.outputModeButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
             this.outputSideButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
 
         public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-            if (this.inputModeButton.mouseClicked(pMouseX,pMouseY,pButton) ||
+            if (this.priorityButton.mouseClicked(pMouseX,pMouseY,pButton) ||
+                    this.inputModeButton.mouseClicked(pMouseX,pMouseY,pButton) ||
                     this.inputSideButton.mouseClicked(pMouseX,pMouseY,pButton) ||
                     this.outputModeButton.mouseClicked(pMouseX,pMouseY,pButton) ||
                     this.outputSideButton.mouseClicked(pMouseX,pMouseY,pButton)
@@ -338,8 +352,9 @@ public class ConfigPanel extends AbstractContainerWidget {
                 case PASSIVE -> Component.translatable("side.passive.tooltip");
                 case AUTOMATED -> Component.translatable("side.automated.tooltip");
             });
-            inputSideButton.setMessage(Component.literal(StringUtils.capitalize(ioSettings.getInputAutomatedSide().getName())));
-            outputSideButton.setMessage(Component.literal(StringUtils.capitalize(ioSettings.getOutputAutomatedSide().getName())));
+            priorityButton.setMessage(Component.literal(ioSettings.getPriority().toString()));
+            inputSideButton.setMessage(Component.literal(StringUtils.capitalize(ioSettings.getInputAutomatedSide().getName()).substring(0,1)));
+            outputSideButton.setMessage(Component.literal(StringUtils.capitalize(ioSettings.getOutputAutomatedSide().getName()).substring(0,1)));
         }
 
         public Direction getSide() {
@@ -347,6 +362,7 @@ public class ConfigPanel extends AbstractContainerWidget {
         }
 
         public void renderTooltips(PoseStack pPoseStack, int pMouseX, int pMouseY) {
+            if (priorityButton.isHoveredOrFocused()) priorityButton.renderToolTip(pPoseStack, pMouseX, pMouseY);
             if (inputModeButton.isHoveredOrFocused()) inputModeButton.renderToolTip(pPoseStack, pMouseX, pMouseY);
             if (inputSideButton.isHoveredOrFocused()) inputSideButton.renderToolTip(pPoseStack, pMouseX, pMouseY);
             if (outputModeButton.isHoveredOrFocused()) outputModeButton.renderToolTip(pPoseStack, pMouseX, pMouseY);

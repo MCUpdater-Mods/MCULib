@@ -1,8 +1,10 @@
 package com.mcupdater.mculib.capabilities;
 
+import com.mcupdater.mculib.MCULib;
 import com.mcupdater.mculib.inventory.InputOutputSettings;
 import com.mcupdater.mculib.inventory.ItemStackValidator;
 import com.mcupdater.mculib.inventory.SideSetting;
+import com.mcupdater.mculib.setup.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -23,9 +25,7 @@ import net.minecraftforge.items.wrapper.EmptyHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 public class ItemResourceHandler extends AbstractResourceHandler implements WorldlyContainer {
@@ -38,6 +38,8 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
     private ItemStackValidator extractFunction = (slot, stack) -> true;
     private boolean isDirty;
     private Function<Player,Boolean> playerValidator;
+    private Direction currentSide;
+    private int currentSlot;
 
     protected Map<Direction, ConfigurableItemHandler> sideConfigs;
     private ConfigurableItemHandler internalHandler;
@@ -86,22 +88,35 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
 
     @Override
     public boolean tickHandler(Level pLevel, BlockPos pBlockPos) {
-        for (Direction side : Direction.values()) {
+        int slotTickLimit = 0;
+        List<Direction> directions = getSortedDirections(this.sideIOMap);
+        if (currentSide == null) currentSide = directions.get(0);
+        while (!directions.get(0).equals(currentSide)) Collections.rotate(directions,1);
+        for (Direction side : directions) {
+            currentSide = side;
             InputOutputSettings ioSettings = this.sideIOMap.get(side);
-            if (ioSettings != null && ioSettings.getInputSetting().equals(SideSetting.AUTOMATED)) {
-                BlockEntity remoteBlock = pLevel.getBlockEntity(pBlockPos.relative(side));
-                if (remoteBlock != null && remoteBlock.getCapability(ForgeCapabilities.ITEM_HANDLER, ioSettings.getInputAutomatedSide()).isPresent()) {
-                    IItemHandler remoteHandler = remoteBlock.getCapability(ForgeCapabilities.ITEM_HANDLER, ioSettings.getInputAutomatedSide()).orElse(new EmptyHandler());
-                    for (int remoteSlot = 0; remoteSlot < remoteHandler.getSlots(); remoteSlot++) {
-                        for (int inputSlot : inputSlots) {
-                            if (!remoteHandler.getStackInSlot(remoteSlot).isEmpty() && this.canPlaceItem(inputSlot, remoteHandler.getStackInSlot(remoteSlot))) {
-                                ItemStack stack = remoteHandler.extractItem(remoteSlot, remoteHandler.getStackInSlot(remoteSlot).getCount(), true);
-                                ItemStack remainder = this.internalHandler.insertItem(inputSlot, stack, false);
-                                int extractCount = stack.getCount() - remainder.getCount();
-                                remoteHandler.extractItem(remoteSlot, extractCount, false);
+            if (slotTickLimit <= Config.SLOTS_PER_TICK.get()) {
+                if (ioSettings != null && ioSettings.getInputSetting().equals(SideSetting.AUTOMATED)) {
+                    BlockEntity remoteBlock = pLevel.getBlockEntity(pBlockPos.relative(side));
+                    if (remoteBlock != null && remoteBlock.getCapability(ForgeCapabilities.ITEM_HANDLER, ioSettings.getInputAutomatedSide()).isPresent()) {
+                        IItemHandler remoteHandler = remoteBlock.getCapability(ForgeCapabilities.ITEM_HANDLER, ioSettings.getInputAutomatedSide()).orElse(new EmptyHandler());
+                        for (int remoteSlot = currentSlot; remoteSlot < remoteHandler.getSlots(); remoteSlot++) {
+                            for (int inputSlot : inputSlots) {
+                                if (!remoteHandler.getStackInSlot(remoteSlot).isEmpty() && this.canPlaceItem(inputSlot, remoteHandler.getStackInSlot(remoteSlot))) {
+                                    ItemStack stack = remoteHandler.extractItem(remoteSlot, remoteHandler.getStackInSlot(remoteSlot).getCount(), true);
+                                    ItemStack remainder = this.internalHandler.insertItem(inputSlot, stack, false);
+                                    int extractCount = stack.getCount() - remainder.getCount();
+                                    remoteHandler.extractItem(remoteSlot, extractCount, false);
+                                }
+                            }
+                            currentSlot = remoteSlot;
+                            slotTickLimit++;
+                            if (slotTickLimit >= Config.SLOTS_PER_TICK.get()) {
+                                break;
                             }
                         }
                     }
+                    if (slotTickLimit < Config.SLOTS_PER_TICK.get()) currentSlot = 0;
                 }
             }
             if (ioSettings != null && ioSettings.getOutputSetting().equals(SideSetting.AUTOMATED)) {

@@ -10,5 +10,6 @@
   "side.closed.tooltip": "Closed",
   "side.passive.tooltip": "Open",
   "side.automated.tooltip": "Automated",
-  "side.sneaky.tooltip": "Side to interact with"
+  "side.sneaky.tooltip": "Side to interact with",
+  "side.priority.tooltip": "Priority"
 }
