@@ -5,16 +5,21 @@ import com.mcupdater.mculib.gui.TabConfig;
 import com.mcupdater.mculib.gui.WidgetPower;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlockEntity, MENU extends AbstractMachineMenu<MACHINE>> extends AbstractContainerScreen<MENU> {
 
     private ConfigPanel configPanel;
     private TabConfig configTab;
+    private List<AbstractWidget> extraWidgets = new ArrayList<>();
 
     public AbstractMachineScreen(MENU pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
@@ -24,11 +29,19 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
     protected void init() {
         super.init();
         this.addRenderableWidget(new WidgetPower(this.leftPos + 153, this.topPos + 5, 18, 71, menu.getEnergyHandler(), WidgetPower.Orientation.VERTICAL));
+        this.registerWidgets();
         this.configPanel = new ConfigPanel(this.menu, this.leftPos, this.topPos, this.imageWidth, this.imageHeight);
         this.configPanel.setVisible(false);
-        this.configTab = this.addRenderableWidget(new TabConfig(this.leftPos - 22, this.topPos + 2,22,22, (mouseX, mouseY) -> this.configPanel.setVisible(!this.configPanel.isVisible())));
+        this.configTab = this.addRenderableWidget(new TabConfig(this.leftPos - 22, this.topPos + 2,22,22, (mouseX, mouseY) -> {
+            this.configPanel.setVisible(!this.configPanel.isVisible());
+            for (AbstractWidget widget : extraWidgets) {
+                widget.visible = !widget.visible;
+            }
+        }));
         this.configTab.setChild(this.configPanel);
+    }
 
+    public void registerWidgets() {
     }
 
     @Override
@@ -81,6 +94,10 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
         if (!this.configPanel.isVisible()) {
             super.renderLabels(pPoseStack, pMouseX, pMouseY);
         }
+    }
+
+    protected void addExtraWidget(AbstractWidget widget) {
+        this.extraWidgets.add(widget);
     }
 
     protected abstract ResourceLocation getGUIResourceLocation();

@@ -218,7 +218,7 @@ public class FluidResourceHandler extends AbstractResourceHandler {
 
         @Override
         public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
-            return FluidResourceHandler.this.insertFunction.isStackValid(tank, stack) || FluidResourceHandler.this.extractFunction.isStackValid(tank, stack);
+            return FluidResourceHandler.this.insertFunction.isStackValid(tank, stack) && FluidResourceHandler.this.tanks.get(tank).isFluidValid(stack);
         }
 
         @Override
@@ -283,7 +283,7 @@ public class FluidResourceHandler extends AbstractResourceHandler {
         public FluidStack drain(int maxDrain, FluidAction action) {
             FluidStack outputStack = FluidStack.EMPTY;
             if (extractAllowed) {
-                if (FluidResourceHandler.this.tanks.size() == 0) return outputStack;
+                if (FluidResourceHandler.this.tanks.isEmpty()) return outputStack;
                 int tankIndex = 0;
                 while (outputStack.equals(FluidStack.EMPTY) && tankIndex < FluidResourceHandler.this.tanks.size()) {
                     outputStack = FluidResourceHandler.this.tanks.get(tankIndex).drain(maxDrain, action);

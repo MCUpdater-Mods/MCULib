@@ -270,7 +270,9 @@ public class ConfigPanel extends AbstractContainerWidget {
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
                 InputOutputSettings ioSettings = entity.getResourceHandler(ConfigPanel.this.selectedResource).getIOSettings(this.side);
-                SideSetting newValue = SideSetting.values()[(ioSettings.getInputSetting().ordinal()+delta) % SideSetting.values().length];
+                Byte newOrdinal = (byte) ((ioSettings.getInputSetting().ordinal()+delta) % SideSetting.values().length);
+                if (newOrdinal < 0) newOrdinal = 2; // No negative values allowed
+                SideSetting newValue = SideSetting.values()[newOrdinal];
                 ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, true, newValue, ioSettings.getInputAutomatedSide(), ioSettings.getPriority()));
             });
             this.inputSideButton = new TextButton(ConfigPanel.this.x + 105, ConfigPanel.this.y + 5 + yOffset, 14, 14, Component.empty(), button -> {
@@ -278,7 +280,9 @@ public class ConfigPanel extends AbstractContainerWidget {
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
                 InputOutputSettings ioSettings = entity.getResourceHandler(ConfigPanel.this.selectedResource).getIOSettings(this.side);
-                Direction newValue = Direction.values()[(ioSettings.getInputAutomatedSide().ordinal()+delta) % Direction.values().length];
+                Byte newOrdinal = (byte) ((ioSettings.getInputAutomatedSide().ordinal()+delta) % Direction.values().length);
+                if (newOrdinal < 0) newOrdinal = 5; // No negative values allowed
+                Direction newValue = Direction.values()[newOrdinal];
                 ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, true, ioSettings.getInputSetting(), newValue, ioSettings.getPriority()));
             }, Component.translatable("side.sneaky.tooltip"));
             this.outputModeButton = new UpdatableImageButton(ConfigPanel.this.x + 143, ConfigPanel.this.y + 5 + yOffset, 14, 14, 16, 16, Component.empty(), (button) -> {
@@ -286,7 +290,9 @@ public class ConfigPanel extends AbstractContainerWidget {
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
                 InputOutputSettings ioSettings = entity.getResourceHandler(ConfigPanel.this.selectedResource).getIOSettings(this.side);
-                SideSetting newValue = SideSetting.values()[(ioSettings.getOutputSetting().ordinal()+delta) % SideSetting.values().length];
+                Byte newOrdinal = (byte) ((ioSettings.getOutputSetting().ordinal()+delta) % SideSetting.values().length);
+                if (newOrdinal < 0) newOrdinal = 2; // No negative values allowed
+                SideSetting newValue = SideSetting.values()[newOrdinal];
                 ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, false, newValue, ioSettings.getOutputAutomatedSide(), ioSettings.getPriority()));
             });
             this.outputSideButton = new TextButton(ConfigPanel.this.x + 159, ConfigPanel.this.y + 5 + yOffset, 14, 14, Component.empty(), (button) -> {
@@ -294,7 +300,9 @@ public class ConfigPanel extends AbstractContainerWidget {
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
                 InputOutputSettings ioSettings = entity.getResourceHandler(ConfigPanel.this.selectedResource).getIOSettings(this.side);
-                Direction newValue = Direction.values()[(ioSettings.getOutputAutomatedSide().ordinal()+delta) % Direction.values().length];
+                Byte newOrdinal = (byte) ((ioSettings.getOutputAutomatedSide().ordinal()+delta) % Direction.values().length);
+                if (newOrdinal < 0) newOrdinal = 5; // No negative values allowed
+                Direction newValue = Direction.values()[newOrdinal];
                 ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfigUpdatePacket(pos, this.side, ConfigPanel.this.selectedResource, false, ioSettings.getOutputSetting(), newValue, ioSettings.getPriority()));
             }, Component.translatable("side.sneaky.tooltip"));
             setTestValues();
