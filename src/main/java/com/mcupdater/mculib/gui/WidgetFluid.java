@@ -1,20 +1,20 @@
 package com.mcupdater.mculib.gui;
 
 import com.mcupdater.mculib.helpers.RenderHelper;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraft.util.FormattedCharSequence;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import org.apache.commons.compress.utils.Lists;
 
-import javax.annotation.Nonnull;
-import java.util.Arrays;
+import java.util.List;
 
 public class WidgetFluid extends AbstractWidget {
     private final Minecraft minecraft;
     private final int tankIndex;
-    //private ResourceLocation ENERGY = new ResourceLocation(MCULib.MODID, "textures/gui/energy.png");
     private IFluidHandler fluidHandler;
     private int COLOR_BACKGROUND = 0xff8b8b8b;
     private int COLOR_TOPLEFT = 0x7f373737;
@@ -33,34 +33,36 @@ public class WidgetFluid extends AbstractWidget {
     }
 
     @Override
-    public void renderButton(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         //draw Box
-        this.fillGradient(poseStack,x + 1, y + 1, x + width - 1, y + height - 1, COLOR_BACKGROUND, COLOR_BACKGROUND); // interior
-        this.hLine(poseStack, x, x+width-1, y, COLOR_TOPLEFT); // top
-        this.vLine(poseStack, x, y, y + height-1, COLOR_TOPLEFT); // left
-        this.hLine(poseStack, x, x+width-1, y + height-1, COLOR_BOTTOMRIGHT); // bottom
-        this.vLine(poseStack, x + width-1, y, y + height-1, COLOR_BOTTOMRIGHT); // right
+        guiGraphics.fillGradient(getX() + 1, getY() + 1, getX() + width - 1, getY() + height - 1, COLOR_BACKGROUND, COLOR_BACKGROUND); // interior
+        guiGraphics.hLine(getX(), getX()+width-1, getY(), COLOR_TOPLEFT); // top
+        guiGraphics.vLine(getX(), getY(), getY() + height-1, COLOR_TOPLEFT); // left
+        guiGraphics.hLine(getX(), getX()+width-1, getY() + height-1, COLOR_BOTTOMRIGHT); // bottom
+        guiGraphics.vLine(getX() + width-1, getY(), getY() + height-1, COLOR_BOTTOMRIGHT); // right
 
         //fill Gauge
-        RenderHelper.renderFluid(poseStack, this.x + 1, this.y + 1, this.width - 2, this.height - 2, fluidHandler.getFluidInTank(this.tankIndex), fluidHandler.getTankCapacity(this.tankIndex));
+        RenderHelper.renderFluid(guiGraphics, this.getX() + 1, this.getY() + 1, this.width - 2, this.height - 2, fluidHandler.getFluidInTank(this.tankIndex), fluidHandler.getTankCapacity(this.tankIndex));
 
         if (this.isHoveredOrFocused() && this.visible) {
-            renderToolTip(poseStack, mouseX, mouseY);
+            renderFluidToolTip();
         }
     }
 
-    @Override
-    public void renderToolTip(@Nonnull PoseStack poseStack, int x, int y){
-        super.renderToolTip(poseStack, x, y);
+    public void renderFluidToolTip(){
         Component fluid = fluidHandler.getFluidInTank(tankIndex).isEmpty() ? Component.literal("Empty") : Component.translatable(fluidHandler.getFluidInTank(tankIndex).getFluid().getFluidType().getDescriptionId());
         Component volume = Component.literal(fluidHandler.getFluidInTank(tankIndex).getAmount() + " / " + fluidHandler.getTankCapacity(tankIndex) + " mB");
         if (this.minecraft.screen != null) {
-            this.minecraft.screen.renderComponentTooltip(poseStack, Arrays.asList(fluid, volume), x, y);
+            List<FormattedCharSequence> fluidTooltip = Lists.newArrayList();
+            fluidTooltip.addAll(this.minecraft.font.split(fluid,64));
+            fluidTooltip.addAll(this.minecraft.font.split(volume, 64));
+            this.minecraft.screen.setTooltipForNextRenderPass(fluidTooltip);
+            //renderComponentTooltip(poseStack, Arrays.asList(fluid, volume), x, y);
         }
     }
 
     @Override
-    public void updateNarration(NarrationElementOutput p_169152_) {
+    public void updateWidgetNarration(NarrationElementOutput p_169152_) {
 
     }
 }

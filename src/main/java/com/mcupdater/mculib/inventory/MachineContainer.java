@@ -2,10 +2,11 @@ package com.mcupdater.mculib.inventory;
 
 import com.mcupdater.mculib.block.AbstractMachineBlockEntity;
 import com.mcupdater.mculib.capabilities.EnergyResourceHandler;
+import com.mcupdater.mculib.capabilities.FluidResourceHandler;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 public class MachineContainer implements Container {
 
@@ -16,7 +17,7 @@ public class MachineContainer implements Container {
 		this.machine = entity;
 	}
 
-	public IFluidHandler getFluidHandler() {
+	public FluidResourceHandler getFluidHandler() {
 		return machine.getFluidHandler();
 	}
 

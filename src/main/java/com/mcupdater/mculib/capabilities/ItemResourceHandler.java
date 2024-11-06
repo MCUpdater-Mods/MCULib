@@ -1,27 +1,24 @@
 package com.mcupdater.mculib.capabilities;
 
-import com.mcupdater.mculib.MCULib;
 import com.mcupdater.mculib.inventory.InputOutputSettings;
 import com.mcupdater.mculib.inventory.ItemStackValidator;
 import com.mcupdater.mculib.inventory.SideSetting;
 import com.mcupdater.mculib.setup.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.wrapper.EmptyHandler;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +40,8 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
 
     protected Map<Direction, ConfigurableItemHandler> sideConfigs;
     private ConfigurableItemHandler internalHandler;
+    private Map<Direction, BlockCapabilityCache<IItemHandler, Direction>> inboundCache;
+    private Map<Direction, BlockCapabilityCache<IItemHandler, Direction>> outboundCache;
 
     public ItemResourceHandler(Level pLevel, int size, int[] exposedSlots, int[] inputSlots, int[] outputSlots, Function<Player,Boolean> playerValidator) {
         super();
@@ -53,6 +52,8 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
         this.outputSlots = outputSlots;
         this.playerValidator = playerValidator;
         this.sideConfigs = new HashMap<>();
+        this.inboundCache = new HashMap<>();
+        this.outboundCache = new HashMap<>();
         initHandlers();
     }
 
@@ -70,20 +71,9 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
     public void setExtractFunction(ItemStackValidator function) {
         this.extractFunction = function;
     }
-    @Override
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap.equals(ForgeCapabilities.ITEM_HANDLER)) {
-            if (side != null) {
-                return this.getItemHandler(side).cast();
-            } else {
-                return LazyOptional.of(this::getInternalHandler).cast();
-            }
-        }
-        return LazyOptional.empty();
-    }
 
-    private LazyOptional<IItemHandlerModifiable> getItemHandler(Direction side) {
-        return LazyOptional.of(() -> this.sideConfigs.get(side));
+    private IItemHandlerModifiable getItemHandler(Direction side) {
+        return this.sideConfigs.get(side);
     }
 
     @Override
@@ -97,16 +87,15 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
             InputOutputSettings ioSettings = this.sideIOMap.get(side);
             if (slotTickLimit <= Config.SLOTS_PER_TICK.get()) {
                 if (ioSettings != null && ioSettings.getInputSetting().equals(SideSetting.AUTOMATED)) {
-                    BlockEntity remoteBlock = pLevel.getBlockEntity(pBlockPos.relative(side));
-                    if (remoteBlock != null && remoteBlock.getCapability(ForgeCapabilities.ITEM_HANDLER, ioSettings.getInputAutomatedSide()).isPresent()) {
-                        IItemHandler remoteHandler = remoteBlock.getCapability(ForgeCapabilities.ITEM_HANDLER, ioSettings.getInputAutomatedSide()).orElse(new EmptyHandler());
-                        for (int remoteSlot = currentSlot; remoteSlot < remoteHandler.getSlots(); remoteSlot++) {
+                    IItemHandler externalHandler = inboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getInputAutomatedSide())).getCapability();
+                    if (externalHandler != null) {
+                        for (int remoteSlot = currentSlot; remoteSlot < externalHandler.getSlots(); remoteSlot++) {
                             for (int inputSlot : inputSlots) {
-                                if (!remoteHandler.getStackInSlot(remoteSlot).isEmpty() && this.canPlaceItem(inputSlot, remoteHandler.getStackInSlot(remoteSlot))) {
-                                    ItemStack stack = remoteHandler.extractItem(remoteSlot, remoteHandler.getStackInSlot(remoteSlot).getCount(), true);
+                                if (!externalHandler.getStackInSlot(remoteSlot).isEmpty() && this.canPlaceItem(inputSlot, externalHandler.getStackInSlot(remoteSlot))) {
+                                    ItemStack stack = externalHandler.extractItem(remoteSlot, externalHandler.getStackInSlot(remoteSlot).getCount(), true);
                                     ItemStack remainder = this.internalHandler.insertItem(inputSlot, stack, false);
                                     int extractCount = stack.getCount() - remainder.getCount();
-                                    remoteHandler.extractItem(remoteSlot, extractCount, false);
+                                    externalHandler.extractItem(remoteSlot, extractCount, false);
                                 }
                             }
                             currentSlot = remoteSlot;
@@ -120,14 +109,13 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
                 }
             }
             if (ioSettings != null && ioSettings.getOutputSetting().equals(SideSetting.AUTOMATED)) {
-                BlockEntity remoteBlock = pLevel.getBlockEntity(pBlockPos.relative(side));
-                if (remoteBlock != null && remoteBlock.getCapability(ForgeCapabilities.ITEM_HANDLER, ioSettings.getOutputAutomatedSide()).isPresent()) {
-                    IItemHandler remoteHandler = remoteBlock.getCapability(ForgeCapabilities.ITEM_HANDLER, ioSettings.getOutputAutomatedSide()).orElse(new EmptyHandler());
-                    for (int remoteSlot = 0; remoteSlot < remoteHandler.getSlots(); remoteSlot++) {
+                IItemHandler externalHandler = outboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getOutputAutomatedSide())).getCapability();
+                if (externalHandler != null) {
+                    for (int remoteSlot = 0; remoteSlot < externalHandler.getSlots(); remoteSlot++) {
                         for (int outputSlot : outputSlots) {
-                            if (!this.getItem(outputSlot).isEmpty() && this.canTakeItemThroughFace(outputSlot, this.getItem(outputSlot), side) && remoteHandler.isItemValid(remoteSlot, this.internalHandler.getStackInSlot(outputSlot))) {
+                            if (!this.getItem(outputSlot).isEmpty() && this.canTakeItemThroughFace(outputSlot, this.getItem(outputSlot), side) && externalHandler.isItemValid(remoteSlot, this.internalHandler.getStackInSlot(outputSlot))) {
                                 ItemStack stack = this.internalHandler.extractItem(outputSlot, this.internalHandler.getStackInSlot(outputSlot).getCount(), true);
-                                ItemStack remainder = remoteHandler.insertItem(remoteSlot, stack, false);
+                                ItemStack remainder = externalHandler.insertItem(remoteSlot, stack, false);
                                 int extractCount = stack.getCount() - remainder.getCount();
                                 this.internalHandler.extractItem(outputSlot, extractCount, false);
                             }
@@ -143,17 +131,26 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
         return false;
     }
 
-    @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
-        this.itemStorage = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(compound, this.itemStorage);
+    private BlockCapabilityCache<IItemHandler, Direction> lookupExternalHandler(ServerLevel level, BlockPos blockPos, Direction direction) {
+        return BlockCapabilityCache.create(
+                Capabilities.ItemHandler.BLOCK,
+                level,
+                blockPos,
+                direction
+        );
     }
 
     @Override
-    public void save(CompoundTag compound) {
-        ContainerHelper.saveAllItems(compound, this.itemStorage);
-        super.save(compound);
+    public void loadAdditional(CompoundTag compound, HolderLookup.Provider pRegistries) {
+        super.loadAdditional(compound, pRegistries);
+        this.itemStorage = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(compound, this.itemStorage, pRegistries);
+    }
+
+    @Override
+    public void saveAdditional(CompoundTag compound, HolderLookup.Provider pRegistries) {
+        ContainerHelper.saveAllItems(compound, this.itemStorage, pRegistries);
+        super.saveAdditional(compound, pRegistries);
     }
 
     // WorldlyContainer methods
@@ -301,7 +298,7 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
                 if (stackInSlot.getCount() >= Math.min(stackInSlot.getMaxStackSize(), getSlotLimit(slot)))
                     return stack;
 
-                if (!ItemHandlerHelper.canItemStacksStack(stack, stackInSlot))
+                if (!ItemStack.isSameItemSameComponents(stack, stackInSlot))
                     return stack;
 
                 if (!ItemResourceHandler.this.canPlaceItem(slot, stack))

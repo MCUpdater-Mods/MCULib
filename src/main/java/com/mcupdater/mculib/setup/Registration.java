@@ -1,35 +1,35 @@
 package com.mcupdater.mculib.setup;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.function.Supplier;
 
 import static com.mcupdater.mculib.MCULib.MODID;
 
 public class Registration {
 
-    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
-    private static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
+    private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
+    private static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, MODID);
 
-    public static void init() {
-        ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
+    public static void init(IEventBus eventBus) {
+        ITEMS.register(eventBus);
+        SOUNDS.register(eventBus);
     }
 
     public static void register(IEventBus eventBus) {
         SOUNDS.register(eventBus);
     }
 
-    public static final RegistryObject<SoundEvent> registerSoundEvent(String name) {
-        return SOUNDS.register(name, () -> new SoundEvent(new ResourceLocation(MODID, name)));
-    }
+    public static final Supplier<Item> MCULIB_ICON = ITEMS.registerSimpleItem("mculib", new Item.Properties());
 
-    public static final RegistryObject<Item> MCULIB_ICON = ITEMS.register("mculib", () -> new Item(new Item.Properties()));
-
-    public static final RegistryObject<SoundEvent> MACHINE_HUM = registerSoundEvent("machine_hum");
+    public static final DeferredHolder<SoundEvent,SoundEvent> MACHINE_HUM = SOUNDS.register(
+            "machine_hum",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(MODID, "machine_hum")));
 
 }

@@ -5,12 +5,15 @@ import com.mcupdater.mculib.gui.TabConfig;
 import com.mcupdater.mculib.gui.WidgetPower;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.neoforged.neoforge.client.event.ContainerScreenEvent;
+import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,54 +48,52 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
     }
 
     @Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(poseStack);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         if (!this.configPanel.isVisible()) {
-            super.render(poseStack, mouseX, mouseY, partialTicks);
-            this.renderTooltip(poseStack, mouseX, mouseY);
+            super.render(guiGraphics, mouseX, mouseY, partialTicks);
+            this.renderTooltip(guiGraphics, mouseX, mouseY);
         } else {
-            renderNoSlots(poseStack, mouseX, mouseY, partialTicks);
+            renderNoSlots(guiGraphics, mouseX, mouseY, partialTicks);
         }
     }
 
-    public void renderNoSlots(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+    public void renderNoSlots(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         int i = this.leftPos;
         int j = this.topPos;
-        this.renderBg(pPoseStack, pPartialTick, pMouseX, pMouseY);
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ContainerScreenEvent.Render.Background(this, pPoseStack, pMouseX, pMouseY));
-        RenderSystem.disableDepthTest();
-        for(Widget widget : this.renderables) {
-            widget.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        this.renderBg(guiGraphics, pPartialTick, pMouseX, pMouseY);
+        NeoForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Background(this, guiGraphics, pMouseX, pMouseY));
+        for(Renderable widget : this.renderables) {
+            widget.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
         }
-        PoseStack posestack = RenderSystem.getModelViewStack();
-        posestack.pushPose();
-        posestack.translate(i, j, 0.0D);
+        RenderSystem.disableDepthTest();
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(i, j, 0.0D);
         RenderSystem.applyModelViewMatrix();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        this.renderLabels(pPoseStack, pMouseX, pMouseY);
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ContainerScreenEvent.Render.Foreground(this, pPoseStack, pMouseX, pMouseY));
-        posestack.popPose();
+        this.renderLabels(guiGraphics, pMouseX, pMouseY);
+        NeoForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Foreground(this, guiGraphics, pMouseX, pMouseY));
+        guiGraphics.pose().popPose();
         RenderSystem.applyModelViewMatrix();
         RenderSystem.enableDepthTest();
     }
 
     @Override
-    protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, getGUIResourceLocation());
         int relX = this.leftPos;
         int relY = this.topPos;
-        this.blit(poseStack, relX, relY, 0, 0, this.imageWidth, this.imageHeight);
+        guiGraphics.blit(getGUIResourceLocation(), relX, relY, 0, 0, this.imageWidth, this.imageHeight);
         if (this.menu.isWorking()) {
             int progress = this.menu.getWorkProgress();
-            this.blit(poseStack, relX + 79, relY + 36, 176, 0, progress, 18);
+            guiGraphics.blit(getGUIResourceLocation(), relX + 79, relY + 36, 176, 0, progress, 18);
         }
     }
 
     @Override
-    protected void renderLabels(PoseStack pPoseStack, int pMouseX, int pMouseY) {
+    protected void renderLabels(GuiGraphics guiGraphics, int pMouseX, int pMouseY) {
         if (!this.configPanel.isVisible()) {
-            super.renderLabels(pPoseStack, pMouseX, pMouseY);
+            super.renderLabels(guiGraphics, pMouseX, pMouseY);
         }
     }
 

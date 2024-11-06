@@ -1,7 +1,7 @@
 package com.mcupdater.mculib.inventory;
 
 
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 @FunctionalInterface
 public interface FluidStackValidator {

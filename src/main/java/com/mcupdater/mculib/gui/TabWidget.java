@@ -1,13 +1,9 @@
 package com.mcupdater.mculib.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.narration.NarratableEntry;
-import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
@@ -15,102 +11,58 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 
-import java.util.Collections;
-
-public class TabWidget extends GuiComponent implements Widget, GuiEventListener, NarratableEntry {
+public class TabWidget extends AbstractWidget {
     private final int COLOR_SHADOW = 0x7f373737;
     private final int COLOR_HIGHLIGHT = 0x7fffffff;
     private int baseColor;
     private int selectedColor;
     private ResourceLocation icon;
     private ClickAction<?> clickAction;
-    public int x;
-    public int y;
-    protected int width;
-    protected int height;
-    private Component message;
     public boolean active = true;
     public boolean visible = true;
     protected boolean isHovered;
     protected boolean selected;
     private boolean focused;
-    protected Widget child;
+    protected AbstractWidget child;
 
     public TabWidget(int x, int y, int width, int height, int baseColor, int selectedColor, ResourceLocation icon, Component pMessage, ClickAction<?> clickAction) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+        super(x, y, width, height, pMessage);
         this.baseColor = baseColor;
         this.selectedColor = selectedColor;
         this.icon = icon;
-        this.message = pMessage;
         this.clickAction = clickAction;
     }
 
     @Override
-    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+    public void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         if (this.visible) {
-            this.isHovered = pMouseX >= this.x && pMouseY >= this.y && pMouseX < this.x + this.width && pMouseY < this.y + this.height;
+            this.isHovered = pMouseX >= this.getX() && pMouseY >= this.getY() && pMouseX < this.getX() + this.width && pMouseY < this.getY() + this.height;
             // Render the tab
-            fill(pPoseStack, x, y, x + width, y + height, this.selected ? selectedColor : baseColor);
-            this.hLine(pPoseStack, x, x + width - 1, y, COLOR_HIGHLIGHT);
-            this.vLine(pPoseStack, x, y, y + height - 1, COLOR_HIGHLIGHT);
-            this.hLine(pPoseStack, x, x + width - 1, y + height - 1, COLOR_SHADOW);
-            this.vLine(pPoseStack, x + width - 1, y, y + height - 1, COLOR_SHADOW);
+            pGuiGraphics.fill(getX(), getY(), getX() + width, getY() + height, this.selected ? selectedColor : baseColor);
+            pGuiGraphics.hLine(getX(), getX() + width - 1, getY(), COLOR_HIGHLIGHT);
+            pGuiGraphics.vLine(getX(), getY(), getY() + height - 1, COLOR_HIGHLIGHT);
+            pGuiGraphics.hLine(getX(), getX() + width - 1, getY() + height - 1, COLOR_SHADOW);
+            pGuiGraphics.vLine(getX() + width - 1, getY(), getY() + height - 1, COLOR_SHADOW);
 
             // Render the icon
-            RenderSystem.setShaderTexture(0, this.icon);
-            blit(pPoseStack, this.x + 3, this.y + 3, this.getBlitOffset(), 0f, 0f, 16, 16, 16, 16);
+            pGuiGraphics.blit(this.icon, this.getX() + 3, this.getY() + 3, 0, 0f, 0f, 16, 16, 16, 16);
 
             // Render child
             if (child != null) {
-                child.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
-            }
-
-            if (this.isHoveredOrFocused()) {
-                renderTooltip(pPoseStack, pMouseX, pMouseY);
+                child.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
             }
         }
     }
 
-    public void setChild(Widget child) {
+    public void setChild(AbstractWidget child) {
         this.child = child;
-    }
-
-    public void renderTooltip(PoseStack pPoseStack, int pMouseX, int pMouseY) {
-        if (Minecraft.getInstance().screen != null) {
-            Minecraft.getInstance().screen.renderComponentTooltip(pPoseStack, Collections.singletonList(message), pMouseX, pMouseY);
-        }
     }
 
     public boolean isHoveredOrFocused() {
         return this.isHovered || this.focused;
     }
 
-    public int getHeight() {
-        return this.height;
-    }
-
-    public int getWidth() {
-        return this.width;
-    }
-
-    @Override
-    public boolean changeFocus(boolean pFocus) {
-        if (this.active && this.visible) {
-            this.focused = !this.focused;
-            this.onFocusChanged(this.focused);
-            return this.focused;
-        } else {
-            return false;
-        }
-    }
-
-    protected void onFocusChanged(boolean pFocused) {
-    }
-
-    @Override
+	@Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         if (this.active && this.visible) {
             if (pButton == 0) { // Left click
@@ -137,11 +89,6 @@ public class TabWidget extends GuiComponent implements Widget, GuiEventListener,
     }
 
     @Override
-    public boolean isMouseOver(double pMouseX, double pMouseY) {
-        return this.active && this.visible && pMouseX >= (double)this.x && pMouseY >= (double)this.y && pMouseX < (double)(this.x + this.width) && pMouseY < (double)(this.y + this.height);
-    }
-
-    @Override
     public NarrationPriority narrationPriority() {
         if (this.focused) {
             return NarrationPriority.FOCUSED;
@@ -151,10 +98,8 @@ public class TabWidget extends GuiComponent implements Widget, GuiEventListener,
     }
 
     @Override
-    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-        if (this.isHoveredOrFocused()) {
-            pNarrationElementOutput.add(NarratedElementType.HINT, this.message);
-        }
+    public void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput) {
+        this.defaultButtonNarrationText(pNarrationElementOutput);
     }
 
     @FunctionalInterface

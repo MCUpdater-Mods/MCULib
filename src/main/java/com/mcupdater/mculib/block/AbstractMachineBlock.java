@@ -3,9 +3,7 @@ package com.mcupdater.mculib.block;
 import com.mcupdater.mculib.helpers.DataHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
@@ -23,7 +21,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -55,7 +52,7 @@ public abstract class AbstractMachineBlock extends BaseEntityBlock {
 
     @Override
     public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity pPlacer, ItemStack pStack) {
-        if (pStack.hasCustomHoverName()) {
+        if (pStack.has(DataComponents.CUSTOM_NAME)) {
             BlockEntity blockEntity = pLevel.getBlockEntity(pPos);
             if (blockEntity instanceof AbstractMachineBlockEntity) {
                 ((AbstractMachineBlockEntity) blockEntity).setCustomName(pStack.getHoverName());
@@ -64,12 +61,12 @@ public abstract class AbstractMachineBlock extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+    public InteractionResult useWithoutItem(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, BlockHitResult pHit) {
         if (!pLevel.isClientSide) {
             BlockEntity blockEntity = pLevel.getBlockEntity(pPos);
             if (blockEntity instanceof AbstractMachineBlockEntity) {
-                Map<Direction, Component> adjacentNames = DataHelper.getAdjacentNames(pLevel, pPos);
-                NetworkHooks.openScreen((ServerPlayer) pPlayer, (MenuProvider) blockEntity, (buf -> {
+                Map<Direction, String> adjacentNames = DataHelper.getAdjacentNames(pLevel, pPos);
+                pPlayer.openMenu((MenuProvider) blockEntity, (buf -> {
                     buf.writeBlockPos(pPos);
                     DataHelper.writeDirectionMap(buf,adjacentNames);
                 }));

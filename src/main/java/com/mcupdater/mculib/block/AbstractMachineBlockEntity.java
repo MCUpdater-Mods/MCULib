@@ -2,6 +2,7 @@ package com.mcupdater.mculib.block;
 
 import com.mcupdater.mculib.capabilities.EnergyResourceHandler;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -73,19 +74,19 @@ public abstract class AbstractMachineBlockEntity extends AbstractConfigurableBlo
     protected abstract boolean performWork();
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, HolderLookup.Provider pRegistries) {
+        super.loadAdditional(compound, pRegistries);
         this.workTotal = compound.getInt("workTotal");
         this.workProgress = compound.getInt("workProgress");
         this.storedXP = compound.getFloat("storedXP");
     }
 
     @Override
-    public void saveAdditional(CompoundTag compound) {
+    public void saveAdditional(CompoundTag compound, HolderLookup.Provider pRegistries) {
         compound.putInt("workTotal", this.workTotal);
         compound.putInt("workProgress", this.workProgress);
         compound.putFloat("storedXP", this.storedXP);
-        super.saveAdditional(compound);
+        super.saveAdditional(compound, pRegistries);
     }
 
     public int extractExperience() {

@@ -2,11 +2,13 @@ package com.mcupdater.mculib.block;
 
 import com.mcupdater.mculib.capabilities.AbstractResourceHandler;
 import com.mcupdater.mculib.capabilities.EnergyResourceHandler;
+import com.mcupdater.mculib.capabilities.FluidResourceHandler;
 import com.mcupdater.mculib.capabilities.ItemResourceHandler;
 import com.mcupdater.mculib.inventory.InputOutputSettings;
 import com.mcupdater.mculib.inventory.SideSetting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -18,11 +20,6 @@ import net.minecraft.world.Nameable;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -73,52 +70,53 @@ public abstract class AbstractConfigurableBlockEntity extends BlockEntity implem
             ioSettings.setPriority(priority);
             handler.updateIOSettings(side, ioSettings);
             this.configMap.put(resourceType, handler);
+            this.level.invalidateCapabilities(this.worldPosition);
             this.setChanged();
             this.notifyClients();
         }
     }
 
     @Override
-    public void load(CompoundTag pTag) {
-        super.load(pTag);
+    public void loadAdditional(CompoundTag pTag, HolderLookup.Provider pRegistries) {
+        super.loadAdditional(pTag, pRegistries);
         if (pTag.contains("CustomName", 8)) {
-            this.name = Component.Serializer.fromJson(pTag.getString("CustomName"));
+            this.name = Component.Serializer.fromJson(pTag.getString("CustomName"), pRegistries);
         }
         if (pTag.contains("SideConfigs")) {
             CompoundTag configs = pTag.getCompound("SideConfigs");
             if (configs.contains("power")) {
                 CompoundTag power = configs.getCompound("power");
                 AbstractResourceHandler handler = this.configMap.get("power");
-                handler.load(power);
+                handler.loadAdditional(power, pRegistries);
             }
             if (configs.contains("items")) {
                 CompoundTag items = configs.getCompound("items");
                 AbstractResourceHandler handler = this.configMap.get("items");
-                handler.load(items);
+                handler.loadAdditional(items, pRegistries);
             }
             if (configs.contains("fluids")) {
                 CompoundTag fluids = configs.getCompound("fluids");
                 AbstractResourceHandler handler = this.configMap.get("fluids");
-                handler.load(fluids);
+                handler.loadAdditional(fluids, pRegistries);
             }
         }
     }
 
     @Override
-    protected void saveAdditional(CompoundTag pTag) {
+    protected void saveAdditional(CompoundTag pTag, HolderLookup.Provider pRegistries) {
         if (this.name != null) {
-            pTag.putString("CustomName", Component.Serializer.toJson(this.name));
+            pTag.putString("CustomName", Component.Serializer.toJson(this.name, pRegistries));
         }
         CompoundTag configs = new CompoundTag();
         for (Map.Entry<String,AbstractResourceHandler> entry : this.configMap.entrySet()) {
             String type = entry.getKey();
             AbstractResourceHandler handler = entry.getValue();
             CompoundTag configType = new CompoundTag();
-            handler.save(configType);
+            handler.saveAdditional(configType, pRegistries);
             configs.put(type,configType);
         }
         pTag.put("SideConfigs", configs);
-        super.saveAdditional(pTag);
+        super.saveAdditional(pTag, pRegistries);
     }
 
     @Override
@@ -127,8 +125,8 @@ public abstract class AbstractConfigurableBlockEntity extends BlockEntity implem
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return this.saveWithoutMetadata();
+    public CompoundTag getUpdateTag(HolderLookup.Provider pRegistries) {
+        return this.saveWithoutMetadata(pRegistries);
     }
 
     public void notifyClients() {
@@ -145,17 +143,6 @@ public abstract class AbstractConfigurableBlockEntity extends BlockEntity implem
                 this.notifyClients();
             }
         }
-    }
-
-    @NotNull
-    @Override
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        for (AbstractResourceHandler handler : this.configMap.values()) {
-            if (handler.getCapability(cap, side).isPresent()) {
-                return handler.getCapability(cap, side);
-            }
-        }
-        return super.getCapability(cap, side);
     }
 
     public AbstractResourceHandler getResourceHandler(String resourceType) {
@@ -176,10 +163,9 @@ public abstract class AbstractConfigurableBlockEntity extends BlockEntity implem
         return null;
     }
 
-    public IFluidHandler getFluidHandler() {
-        //TODO: Review tying to ConfigMap
+    public FluidResourceHandler getFluidHandler() {
         if (this.configMap.get("fluids") != null)
-            return this.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
+            return (FluidResourceHandler) this.configMap.get("fluids");
 
         return null;
     }

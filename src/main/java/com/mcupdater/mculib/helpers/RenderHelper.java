@@ -2,26 +2,27 @@ package com.mcupdater.mculib.helpers;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Matrix4f;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.fluids.FluidStack;
+import org.joml.Matrix4f;
 
 public class RenderHelper {
     private static final int TEXTURE_SIZE = 16;
 
-    public static void renderFluid(PoseStack poseStack, int x, int y, int width, int height, FluidStack fluidStack, int capacity) {
+    public static void renderFluid(GuiGraphics guiGraphics, int x, int y, int width, int height, FluidStack fluidStack, int capacity) {
         if (fluidStack == null) {
             return;
         }
-        poseStack.pushPose();
+        guiGraphics.pose().pushPose();
         {
-            poseStack.translate(x, y, 0);
+            guiGraphics.pose().translate(x, y, 0);
             RenderSystem.enableBlend();
             Fluid fluid = fluidStack.getFluid();
             if (fluid == null) {
@@ -35,11 +36,11 @@ public class RenderHelper {
             int scaledAmount = (amount * height) / capacity;
             if (amount > 0 && scaledAmount < 1) scaledAmount = 1;
             if (scaledAmount > height) scaledAmount = height;
-            drawTiledSprite(poseStack, width, height, fluidColor, scaledAmount, fluidStillSprite);
+            drawTiledSprite(guiGraphics.pose(), width, height, fluidColor, scaledAmount, fluidStillSprite);
         }
         RenderSystem.setShaderColor(1f,1f,1f,1f);
         RenderSystem.disableBlend();
-        poseStack.popPose();
+        guiGraphics.pose().popPose();
     }
 
 
@@ -99,12 +100,11 @@ public class RenderHelper {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
 
         Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBuilder();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bufferBuilder.vertex(matrix, xCoord, yCoord + 16, zLevel).uv(uMin, vMax).endVertex();
-        bufferBuilder.vertex(matrix, xCoord + 16 - maskRight, yCoord + 16, zLevel).uv(uMax, vMax).endVertex();
-        bufferBuilder.vertex(matrix, xCoord + 16 - maskRight, yCoord + maskTop, zLevel).uv(uMax, vMin).endVertex();
-        bufferBuilder.vertex(matrix, xCoord, yCoord + maskTop, zLevel).uv(uMin, vMin).endVertex();
-        tessellator.end();
+        BufferBuilder bufferBuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        bufferBuilder.addVertex(matrix, xCoord, yCoord + 16, zLevel).setUv(uMin, vMax);
+        bufferBuilder.addVertex(matrix, xCoord + 16 - maskRight, yCoord + 16, zLevel).setUv(uMax, vMax);
+        bufferBuilder.addVertex(matrix, xCoord + 16 - maskRight, yCoord + maskTop, zLevel).setUv(uMax, vMin);
+        bufferBuilder.addVertex(matrix, xCoord, yCoord + maskTop, zLevel).setUv(uMin, vMin);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
     }
 }

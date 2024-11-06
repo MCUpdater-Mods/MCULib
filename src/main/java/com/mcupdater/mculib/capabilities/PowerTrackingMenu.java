@@ -4,9 +4,7 @@ import com.mcupdater.mculib.block.AbstractConfigurableBlockEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.energy.EnergyStorage;
-import net.minecraftforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 public abstract class PowerTrackingMenu extends AbstractContainerMenu {
     protected AbstractConfigurableBlockEntity tileEntity;
@@ -45,15 +43,15 @@ public abstract class PowerTrackingMenu extends AbstractContainerMenu {
     }
 
     public int getEnergy() {
-        return tileEntity.getCapability(ForgeCapabilities.ENERGY, null).orElse(new EnergyStorage(0)).getEnergyStored();
+        return tileEntity.getEnergyStorage().getStoredEnergy();
     }
 
     public int getMaxEnergy() {
-        return tileEntity.getCapability(ForgeCapabilities.ENERGY, null).orElse(new EnergyStorage(0)).getMaxEnergyStored();
+        return tileEntity.getEnergyStorage().getCapacity();
     }
 
     public IEnergyStorage getEnergyHandler() {
-        return tileEntity.getCapability(ForgeCapabilities.ENERGY, null).orElse(new EnergyStorage(0));
+        return tileEntity.getEnergyStorage().getInternalHandler();
     }
 
 }

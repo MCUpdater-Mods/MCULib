@@ -7,11 +7,11 @@ import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.EmptyHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
-import net.minecraftforge.items.wrapper.SidedInvWrapper;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.items.wrapper.SidedInvWrapper;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,15 +39,16 @@ public class InventoryHelper {
         return toInsert;
     }
 
-    public static IItemHandler getWrapper(BlockEntity tileEntity, Direction side) {
-        if (tileEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).isPresent()) {
-            return tileEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).orElse(EmptyHandler.INSTANCE);
-        } else if (tileEntity instanceof WorldlyContainer) {
-            return new SidedInvWrapper((WorldlyContainer) tileEntity, side);
-        } else if (tileEntity instanceof Container) {
-            return new InvWrapper((Container) tileEntity);
+    public static IItemHandler getWrapper(Level level, BlockEntity blockEntity, Direction side) {
+        @Nullable IItemHandler cap = level.getCapability(Capabilities.ItemHandler.BLOCK, blockEntity.getBlockPos(), null, blockEntity, side);
+        if (cap != null) {
+            return cap;
+        } else if (blockEntity instanceof WorldlyContainer) {
+            return new SidedInvWrapper((WorldlyContainer) blockEntity, side);
+        } else if (blockEntity instanceof Container) {
+            return new InvWrapper((Container) blockEntity);
         }
-        return EmptyHandler.INSTANCE;
+        return null;
     }
 
     public static boolean addToPriorityInventory(Level level, BlockPos pos, ItemStack stack, List<Direction> sides) {
@@ -56,8 +57,8 @@ public class InventoryHelper {
             BlockEntity target;
             target = level.getBlockEntity(pos.relative(side));
             if (target != null) {
-                IItemHandler invOutput = getWrapper(target, side.getOpposite());
-                if (invOutput != EmptyHandler.INSTANCE) {
+                IItemHandler invOutput = getWrapper(level, target, side.getOpposite());
+                if (invOutput != null) {
                     if (canStackFitInInventory(invOutput, stack)) {
                         ItemStack remain = insertItemStackIntoInventory(invOutput, stack);
                         return remain.isEmpty();
@@ -71,9 +72,9 @@ public class InventoryHelper {
     public static boolean canStacksMerge(ItemStack stack1, ItemStack stack2) {
         if (stack1 == null || stack2 == null)
             return false;
-        if (!stack1.sameItem(stack2))
+        if (!ItemStack.isSameItem(stack1,stack2))
             return false;
-        return ItemStack.tagMatches(stack1, stack2);
+        return ItemStack.isSameItemSameComponents(stack1, stack2);
 
     }
 

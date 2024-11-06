@@ -4,16 +4,13 @@ import com.mcupdater.mculib.inventory.InputOutputSettings;
 import com.mcupdater.mculib.inventory.SideSetting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.EnergyStorage;
-import net.minecraftforge.energy.IEnergyStorage;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +26,8 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
     protected int maxExtract;
     protected Map<Direction, ConfigurableEnergyHandler> sideConfigs;
     private ConfigurableEnergyHandler internalHandler;
+    private Map<Direction, BlockCapabilityCache<IEnergyStorage, Direction>> inboundCache;
+    private Map<Direction, BlockCapabilityCache<IEnergyStorage, Direction>> outboundCache;
 
     public EnergyResourceHandler(Level pLevel, int capacity, int maxTransfer, boolean reservePower) {
         this(pLevel, capacity, maxTransfer, maxTransfer, reservePower);
@@ -49,6 +48,8 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
         this.energy = 0;
         this.reservePower = reservePower;
         this.sideConfigs = new HashMap<>();
+        this.inboundCache = new HashMap<>();
+        this.outboundCache = new HashMap<>();
         initHandlers();
     }
 
@@ -66,6 +67,8 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
         handler.setExtract(settings.getOutputSetting().equals(SideSetting.AUTOMATED) || settings.getOutputSetting().equals(SideSetting.PASSIVE));
         handler.setReceive(settings.getInputSetting().equals(SideSetting.AUTOMATED) || settings.getInputSetting().equals(SideSetting.PASSIVE));
         this.sideConfigs.put(side, handler);
+        this.inboundCache.remove(side);
+        this.outboundCache.remove(side);
     }
 
     public void setEnergy(int energy) {
@@ -96,57 +99,52 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
         return this.maxReceive;
     }
 
-    public LazyOptional<IEnergyStorage> getEnergyHandler(Direction side) {
-        return LazyOptional.of(() -> this.sideConfigs.get(side));
-    }
-
     public void setLevel(Level level) {
         this.level = level;
     }
 
-    @Override
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap.equals(ForgeCapabilities.ENERGY)) {
-            if (side != null) {
-                return this.getEnergyHandler(side).cast();
-            } else {
-                return LazyOptional.of(this::getInternalHandler).cast();
-            }
-        }
-        return LazyOptional.empty();
+    public IEnergyStorage getEnergyHandler(Direction side) {
+        return this.sideConfigs.get(side);
     }
 
     @Override
     public boolean tickHandler(Level pLevel, BlockPos pBlockPos) {
         if (!pLevel.isClientSide()) {
-            int splitEnergy = 0;
-            if (this.reservePower) {
-                if (this.getStoredEnergy() > this.getCapacity() / 2) {
-                    splitEnergy = this.getStoredEnergy() - (this.getCapacity() / 2);
-                }
-            } else {
-                splitEnergy = this.getStoredEnergy();
-            }
             int validReceivers = 0;
             List<IEnergyStorage> receivers = new ArrayList<>();
             List<Direction> directions = getSortedDirections(this.sideIOMap);
             for (Direction side : directions) {
+                if (this.getIOSettings(side) != null && this.getIOSettings(side).getInputSetting().equals(SideSetting.AUTOMATED)) {
+                    IEnergyStorage externalHandler = inboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getInputAutomatedSide())).getCapability();
+                    if (externalHandler != null) {
+                        if (externalHandler.canExtract() && internalHandler.getEnergyStored() < internalHandler.getMaxEnergyStored()) {
+                            externalHandler.extractEnergy(internalHandler.receiveEnergy(this.getMaxReceive(), false), false);
+                        }
+                    }
+                }
                 if (this.getIOSettings(side) != null && this.getIOSettings(side).getOutputSetting().equals(SideSetting.AUTOMATED)) {
-                    BlockEntity tile = pLevel.getBlockEntity(pBlockPos.relative(side));
-                    if (tile != null && tile.getCapability(ForgeCapabilities.ENERGY, this.getIOSettings(side).getOutputAutomatedSide()).isPresent()) {
-                        IEnergyStorage externalStorage = tile.getCapability(ForgeCapabilities.ENERGY, this.getIOSettings(side).getOutputAutomatedSide()).orElse(new EnergyStorage(0));
-                        if (externalStorage.canReceive() && externalStorage.getEnergyStored() < externalStorage.getMaxEnergyStored()) {
+                    IEnergyStorage externalHandler = outboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getOutputAutomatedSide())).getCapability();
+                    if (externalHandler != null) {
+                        if (externalHandler.canReceive() && externalHandler.getEnergyStored() < externalHandler.getMaxEnergyStored()) {
                             validReceivers++;
-                            receivers.add(externalStorage);
+                            receivers.add(externalHandler);
                         }
                     }
                 }
             }
             if (validReceivers > 0) {
+                int splitEnergy = 0;
+                if (this.reservePower) {
+                    if (this.getStoredEnergy() > this.getCapacity() / 2) {
+                        splitEnergy = this.getStoredEnergy() - (this.getCapacity() / 2);
+                    }
+                } else {
+                    splitEnergy = this.getStoredEnergy();
+                }
                 int shared = Math.floorDiv(splitEnergy, validReceivers);
                 int removed = 0;
                 for (IEnergyStorage receiver : receivers) {
-                    removed += this.getInternalHandler().extractEnergy(receiver.receiveEnergy(shared, false), false);
+                    removed += this.getInternalHandler().extractEnergy(receiver.receiveEnergy(Math.max(this.getMaxExtract(), shared), false), false);
                 }
                 return removed > 0;
             }
@@ -154,16 +152,25 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
         return false;
     }
 
+    private BlockCapabilityCache<IEnergyStorage, Direction> lookupExternalHandler(ServerLevel level, BlockPos blockPos, Direction direction) {
+        return BlockCapabilityCache.create(
+                Capabilities.EnergyStorage.BLOCK,
+                level,
+                blockPos,
+                direction
+        );
+    }
+
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, HolderLookup.Provider pRegistries) {
+        super.loadAdditional(compound, pRegistries);
         this.setEnergy(compound.getInt("energy"));
     }
 
     @Override
-    public void save(CompoundTag compound) {
+    public void saveAdditional(CompoundTag compound, HolderLookup.Provider pRegistries) {
         compound.putInt("energy", this.getStoredEnergy());
-        super.save(compound);
+        super.saveAdditional(compound, pRegistries);
     }
 
     public class ConfigurableEnergyHandler implements IEnergyStorage {
