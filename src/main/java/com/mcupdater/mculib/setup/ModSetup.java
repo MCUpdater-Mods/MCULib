@@ -15,6 +15,6 @@ public class ModSetup {
     */
 
     public static void init(final FMLCommonSetupEvent event) {
-        ChannelRegistration.init();
+        //ChannelRegistration.init();
     }
 }

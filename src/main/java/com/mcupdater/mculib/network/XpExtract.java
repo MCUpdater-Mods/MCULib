@@ -30,7 +30,7 @@ public record XpExtract(BlockPos blockPos) implements CustomPacketPayload {
         byteBuf.writeBlockPos(xpExtract.blockPos);
     }
 
-	@Override
+    @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }

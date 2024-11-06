@@ -1,6 +1,7 @@
 package com.mcupdater.mculib.network;
 
 import com.mcupdater.mculib.MCULib;
+import com.mcupdater.mculib.block.AbstractConfigurableBlockEntity;
 import com.mcupdater.mculib.inventory.SideSetting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

@@ -1,13 +1,10 @@
 package com.mcupdater.mculib.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
-
-import java.util.Collections;
 
 public class TextButton extends Button {
 

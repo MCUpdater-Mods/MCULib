@@ -20,6 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -252,7 +253,7 @@ public class ConfigPanel extends AbstractParentWidget {
                 InputOutputSettings ioSettings = entity.getResourceHandler(ConfigPanel.this.selectedResource).getIOSettings(this.side);
                 Byte newValue = (byte) ((ioSettings.getPriority()+delta) % 6);
                 if (newValue < 0) newValue = 5; // No negative values allowed
-                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, true, ioSettings.getInputSetting(), ioSettings.getInputAutomatedSide(), newValue));
+                PacketDistributor.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, true, ioSettings.getInputSetting(), ioSettings.getInputAutomatedSide(), newValue));
             }, Component.translatable("side.priority.tooltip"));
             this.inputModeButton = new UpdatableImageButton(ConfigPanel.this.x + 89, ConfigPanel.this.y + 5 + yOffset, 14, 14, 16, 16, Component.empty(), button -> {
                 int delta = Screen.hasShiftDown() ? -1 : 1;
@@ -262,7 +263,7 @@ public class ConfigPanel extends AbstractParentWidget {
                 Byte newOrdinal = (byte) ((ioSettings.getInputSetting().ordinal()+delta) % SideSetting.values().length);
                 if (newOrdinal < 0) newOrdinal = 2; // No negative values allowed
                 SideSetting newValue = SideSetting.values()[newOrdinal];
-                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, true, newValue, ioSettings.getInputAutomatedSide(), ioSettings.getPriority()));
+                PacketDistributor.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, true, newValue, ioSettings.getInputAutomatedSide(), ioSettings.getPriority()));
             });
             this.inputSideButton = new TextButton(ConfigPanel.this.x + 105, ConfigPanel.this.y + 5 + yOffset, 14, 14, Component.empty(), button -> {
                 int delta = Screen.hasShiftDown() ? -1 : 1;
@@ -272,7 +273,7 @@ public class ConfigPanel extends AbstractParentWidget {
                 Byte newOrdinal = (byte) ((ioSettings.getInputAutomatedSide().ordinal()+delta) % Direction.values().length);
                 if (newOrdinal < 0) newOrdinal = 5; // No negative values allowed
                 Direction newValue = Direction.values()[newOrdinal];
-                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, true, ioSettings.getInputSetting(), newValue, ioSettings.getPriority()));
+                PacketDistributor.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, true, ioSettings.getInputSetting(), newValue, ioSettings.getPriority()));
             }, Component.translatable("side.sneaky.tooltip"));
             this.outputModeButton = new UpdatableImageButton(ConfigPanel.this.x + 143, ConfigPanel.this.y + 5 + yOffset, 14, 14, 16, 16, Component.empty(), (button) -> {
                 int delta = Screen.hasShiftDown() ? -1 : 1;
@@ -282,7 +283,7 @@ public class ConfigPanel extends AbstractParentWidget {
                 Byte newOrdinal = (byte) ((ioSettings.getOutputSetting().ordinal()+delta) % SideSetting.values().length);
                 if (newOrdinal < 0) newOrdinal = 2; // No negative values allowed
                 SideSetting newValue = SideSetting.values()[newOrdinal];
-                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, false, newValue, ioSettings.getOutputAutomatedSide(), ioSettings.getPriority()));
+                PacketDistributor.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, false, newValue, ioSettings.getOutputAutomatedSide(), ioSettings.getPriority()));
             });
             this.outputSideButton = new TextButton(ConfigPanel.this.x + 159, ConfigPanel.this.y + 5 + yOffset, 14, 14, Component.empty(), (button) -> {
                 int delta = Screen.hasShiftDown() ? -1 : 1;
@@ -292,7 +293,7 @@ public class ConfigPanel extends AbstractParentWidget {
                 Byte newOrdinal = (byte) ((ioSettings.getOutputAutomatedSide().ordinal()+delta) % Direction.values().length);
                 if (newOrdinal < 0) newOrdinal = 5; // No negative values allowed
                 Direction newValue = Direction.values()[newOrdinal];
-                ChannelRegistration.MCULIB_CHANNEL.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, false, ioSettings.getOutputSetting(), newValue, ioSettings.getPriority()));
+                PacketDistributor.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, false, ioSettings.getOutputSetting(), newValue, ioSettings.getPriority()));
             }, Component.translatable("side.sneaky.tooltip"));
             setTestValues();
         }
@@ -359,11 +360,13 @@ public class ConfigPanel extends AbstractParentWidget {
         }
 
         public void renderTooltips(GuiGraphics guiGraphics, int pMouseX, int pMouseY) {
+        /* TODO - Maybe no longer needed?
             if (priorityButton.isHoveredOrFocused()) priorityButton.renderToolTip(guiGraphics, pMouseX, pMouseY);
             if (inputModeButton.isHoveredOrFocused()) inputModeButton.renderToolTip(guiGraphics, pMouseX, pMouseY);
             if (inputSideButton.isHoveredOrFocused()) inputSideButton.renderToolTip(guiGraphics, pMouseX, pMouseY);
             if (outputModeButton.isHoveredOrFocused()) outputModeButton.renderToolTip(guiGraphics, pMouseX, pMouseY);
             if (outputSideButton.isHoveredOrFocused()) outputSideButton.renderToolTip(guiGraphics, pMouseX, pMouseY);
+        */
         }
     }
 }
