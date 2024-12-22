@@ -64,6 +64,14 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
         this.internalHandler = new ConfigurableItemHandler(true, true, true);
     }
 
+    public String debugHandlers() {
+        List<String> entries = new ArrayList<>();
+        for (Map.Entry<Direction, ConfigurableItemHandler> entry : sideConfigs.entrySet()) {
+            entries.add(String.format("{%s: %s}", entry.getKey(), entry.getValue()));
+        }
+        return String.join(",", entries);
+    }
+
     public void setInsertFunction(ItemStackValidator function) {
         this.insertFunction = function;
     }
@@ -72,7 +80,7 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
         this.extractFunction = function;
     }
 
-    private IItemHandlerModifiable getItemHandler(Direction side) {
+    public IItemHandlerModifiable getItemHandler(Direction side) {
         return this.sideConfigs.get(side);
     }
 

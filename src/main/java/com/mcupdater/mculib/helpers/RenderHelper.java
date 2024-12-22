@@ -5,13 +5,21 @@ import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.joml.Matrix4f;
+
+import java.util.List;
+import java.util.Optional;
 
 public class RenderHelper {
     private static final int TEXTURE_SIZE = 16;
@@ -20,23 +28,24 @@ public class RenderHelper {
         if (fluidStack == null) {
             return;
         }
+        Fluid fluid = fluidStack.getFluid();
+        if (fluid.isSame(Fluids.EMPTY)) {
+            return;
+        }
         guiGraphics.pose().pushPose();
         {
             guiGraphics.pose().translate(x, y, 0);
             RenderSystem.enableBlend();
-            Fluid fluid = fluidStack.getFluid();
-            if (fluid == null) {
-                return;
-            }
 
-            TextureAtlasSprite fluidStillSprite = getStillFluidSprite(fluidStack);
-            IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
-            int fluidColor = renderProperties.getTintColor(fluidStack);
-            int amount = fluidStack.getAmount();
-            int scaledAmount = (amount * height) / capacity;
-            if (amount > 0 && scaledAmount < 1) scaledAmount = 1;
-            if (scaledAmount > height) scaledAmount = height;
-            drawTiledSprite(guiGraphics.pose(), width, height, fluidColor, scaledAmount, fluidStillSprite);
+            getStillFluidSprite(fluidStack).ifPresent(fluidStillSprite -> {
+                IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
+                int fluidColor = renderProperties.getTintColor(fluidStack);
+                int amount = fluidStack.getAmount();
+                int scaledAmount = (amount * height) / capacity;
+                if (amount > 0 && scaledAmount < 1) scaledAmount = 1;
+                if (scaledAmount > height) scaledAmount = height;
+                drawTiledSprite(guiGraphics.pose(), width, height, fluidColor, scaledAmount, fluidStillSprite);
+            });
         }
         RenderSystem.setShaderColor(1f,1f,1f,1f);
         RenderSystem.disableBlend();
@@ -44,12 +53,12 @@ public class RenderHelper {
     }
 
 
-    private static TextureAtlasSprite getStillFluidSprite(FluidStack fluidStack) {
+    private static Optional<TextureAtlasSprite> getStillFluidSprite(FluidStack fluidStack) {
         Minecraft minecraft = Minecraft.getInstance();
         Fluid fluid = fluidStack.getFluid();
         IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
         ResourceLocation fluidStill = renderProperties.getStillTexture(fluidStack);
-        return minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(fluidStill);
+        return Optional.ofNullable(minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(fluidStill)).filter(sprite -> sprite.atlasLocation() != MissingTextureAtlasSprite.getLocation());
     }
 
     private static void drawTiledSprite(PoseStack poseStack, final int tiledWidth, final int tiledHeight, int color, int scaledAmount, TextureAtlasSprite sprite) {
@@ -106,5 +115,12 @@ public class RenderHelper {
         bufferBuilder.addVertex(matrix, xCoord + 16 - maskRight, yCoord + maskTop, zLevel).setUv(uMax, vMin);
         bufferBuilder.addVertex(matrix, xCoord, yCoord + maskTop, zLevel).setUv(uMin, vMin);
         BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
+    }
+
+    public static void sendParticles(ServerLevel level, ParticleOptions particleData, double x, double y, double z, int count, double dX, double dY, double dZ, double speed) {
+        List<ServerPlayer> players = level.getServer().getPlayerList().getPlayers();
+        for (ServerPlayer player : players) {
+            level.sendParticles(player, particleData, false, x, y, z, count, dX, dY, dZ, speed);
+        }
     }
 }

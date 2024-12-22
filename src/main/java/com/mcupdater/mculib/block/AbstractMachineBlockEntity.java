@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import static com.mcupdater.mculib.setup.Config.OVERDRIVE_ENABLED;
 
-public abstract class AbstractMachineBlockEntity extends AbstractConfigurableBlockEntity {
+public abstract class AbstractMachineBlockEntity extends AbstractConfigurableBlockEntity implements IMachineGuiProvider {
     private final int powerUse;
     protected float storedXP = 0;
     protected int workProgress;

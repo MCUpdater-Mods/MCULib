@@ -1,5 +1,6 @@
 package com.mcupdater.mculib.capabilities;
 
+import com.mcupdater.mculib.MCULib;
 import com.mcupdater.mculib.inventory.InputOutputSettings;
 import com.mcupdater.mculib.inventory.SideSetting;
 import net.minecraft.core.BlockPos;
@@ -116,9 +117,12 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
             for (Direction side : directions) {
                 if (this.getIOSettings(side) != null && this.getIOSettings(side).getInputSetting().equals(SideSetting.AUTOMATED)) {
                     IEnergyStorage externalHandler = inboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getInputAutomatedSide())).getCapability();
+
                     if (externalHandler != null) {
                         if (externalHandler.canExtract() && internalHandler.getEnergyStored() < internalHandler.getMaxEnergyStored()) {
-                            externalHandler.extractEnergy(internalHandler.receiveEnergy(this.getMaxReceive(), false), false);
+                            int availableEnergy = externalHandler.extractEnergy(this.maxReceive, true);
+                            //MCULib.LOGGER.debug("{}[{}] Direction: {} availableEnergy: {}", pLevel.getBlockState(pBlockPos).getBlock().getName().toString(), pBlockPos.toShortString(), side, availableEnergy);
+                            externalHandler.extractEnergy(internalHandler.receiveEnergy(Math.min(availableEnergy, this.capacity - this.energy), false), false);
                         }
                     }
                 }
@@ -144,7 +148,8 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
                 int shared = Math.floorDiv(splitEnergy, validReceivers);
                 int removed = 0;
                 for (IEnergyStorage receiver : receivers) {
-                    removed += this.getInternalHandler().extractEnergy(receiver.receiveEnergy(Math.max(this.getMaxExtract(), shared), false), false);
+                    // Each receiver should get their even share of the available energy and remove from this machine the amount of energy that was transferred
+                    removed += this.getInternalHandler().extractEnergy(receiver.receiveEnergy(shared,false),false);
                 }
                 return removed > 0;
             }
@@ -153,6 +158,7 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
     }
 
     private BlockCapabilityCache<IEnergyStorage, Direction> lookupExternalHandler(ServerLevel level, BlockPos blockPos, Direction direction) {
+        //MCULib.LOGGER.debug("BlockPos: {} Direction: {}", blockPos.toShortString(), direction.getName());
         return BlockCapabilityCache.create(
                 Capabilities.EnergyStorage.BLOCK,
                 level,
@@ -189,6 +195,7 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
             EnergyResourceHandler storage = EnergyResourceHandler.this;
             if (this.canReceive() && (storage.level == null || storage.level.getGameTime() > lastReceiveTick)) {
                 int energyReceived = Math.min(storage.capacity - storage.energy, Math.min(storage.maxReceive, maxReceive));
+                //MCULib.LOGGER.debug("Received: {} Offered: {} Simulated: {}",energyReceived,maxReceive,simulate );
                 if (!simulate) {
                     storage.energy += energyReceived;
                     if (storage.level != null) {
@@ -205,6 +212,7 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
             EnergyResourceHandler storage = EnergyResourceHandler.this;
             if (canExtract()) {
                 int energyExtracted = Math.min(storage.energy, Math.min(storage.maxExtract, maxExtract));
+                //MCULib.LOGGER.debug("Extracted: {} Requested: {} Simulated: {}",energyExtracted,maxExtract,simulate );
                 if (!simulate)
                     energy -= energyExtracted;
                 return energyExtracted;

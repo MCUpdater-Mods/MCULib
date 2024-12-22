@@ -80,55 +80,57 @@ public class FluidResourceHandler extends AbstractResourceHandler {
         return this.internalHandler;
     }
 
-    private IFluidHandler getFluidHandler(Direction side) {
+    public IFluidHandler getFluidHandler(Direction side) {
         return this.sideConfigs.get(side);
     }
 
     @Override
     public boolean tickHandler(Level pLevel, BlockPos pBlockPos) {
         // Do push and pull
-        List<Direction> directions = getSortedDirections(this.sideIOMap);
-        for (Direction side : directions) {
-            InputOutputSettings ioSettings = this.sideIOMap.get(side);
-            if (ioSettings != null && ioSettings.getInputSetting().equals(SideSetting.AUTOMATED)) {
-                IFluidHandler externalHandler = inboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getInputAutomatedSide())).getCapability();
-                if (externalHandler != null) {
-                    for (int remoteTank = 0; remoteTank < externalHandler.getTanks(); remoteTank++) {
-                        for (int inputTank : inputTanks) {
-                            if (!externalHandler.getFluidInTank(remoteTank).isEmpty() && this.internalHandler.isFluidValid(inputTank, externalHandler.getFluidInTank(remoteTank))) {
-                                FluidStack fluidStack = externalHandler.drain(externalHandler.getFluidInTank(remoteTank).getAmount(), IFluidHandler.FluidAction.SIMULATE);
-                                if (!fluidStack.isEmpty()) {
-                                    int fillAmount = this.internalHandler.fill(inputTank, fluidStack, IFluidHandler.FluidAction.EXECUTE);
-                                    fluidStack.setAmount(fillAmount);
-                                    externalHandler.drain(fluidStack, IFluidHandler.FluidAction.EXECUTE);
+        if (!pLevel.isClientSide()) {
+            List<Direction> directions = getSortedDirections(this.sideIOMap);
+            for (Direction side : directions) {
+                InputOutputSettings ioSettings = this.sideIOMap.get(side);
+                if (ioSettings != null && ioSettings.getInputSetting().equals(SideSetting.AUTOMATED)) {
+                    IFluidHandler externalHandler = inboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getInputAutomatedSide())).getCapability();
+                    if (externalHandler != null) {
+                        for (int remoteTank = 0; remoteTank < externalHandler.getTanks(); remoteTank++) {
+                            for (int inputTank : inputTanks) {
+                                if (!externalHandler.getFluidInTank(remoteTank).isEmpty() && this.internalHandler.isFluidValid(inputTank, externalHandler.getFluidInTank(remoteTank))) {
+                                    FluidStack fluidStack = externalHandler.drain(externalHandler.getFluidInTank(remoteTank).getAmount(), IFluidHandler.FluidAction.SIMULATE);
+                                    if (!fluidStack.isEmpty()) {
+                                        int fillAmount = this.internalHandler.fill(inputTank, fluidStack, IFluidHandler.FluidAction.EXECUTE);
+                                        fluidStack.setAmount(fillAmount);
+                                        externalHandler.drain(fluidStack, IFluidHandler.FluidAction.EXECUTE);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (ioSettings != null && ioSettings.getOutputSetting().equals(SideSetting.AUTOMATED)) {
+                    IFluidHandler externalHandler = outboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getOutputAutomatedSide())).getCapability();
+                    if (externalHandler != null) {
+                        for (int remoteTank = 0; remoteTank < externalHandler.getTanks(); remoteTank++) {
+                            for (int outputTank : outputTanks) {
+                                if (!this.internalHandler.getFluidInTank(outputTank).isEmpty() && externalHandler.isFluidValid(outputTank, this.internalHandler.getFluidInTank(outputTank))) {
+                                    FluidStack fluidStack = this.internalHandler.drain(outputTank, this.internalHandler.getFluidInTank(outputTank).getAmount(), IFluidHandler.FluidAction.SIMULATE);
+                                    if (!fluidStack.isEmpty()) {
+                                        int fillAmount = externalHandler.fill(fluidStack, IFluidHandler.FluidAction.EXECUTE);
+                                        fluidStack.setAmount(fillAmount);
+                                        this.internalHandler.drain(outputTank, fluidStack, IFluidHandler.FluidAction.EXECUTE);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-            if (ioSettings != null && ioSettings.getOutputSetting().equals(SideSetting.AUTOMATED)) {
-                IFluidHandler externalHandler = outboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getOutputAutomatedSide())).getCapability();
-                if (externalHandler != null) {
-                    for (int remoteTank = 0; remoteTank < externalHandler.getTanks(); remoteTank++) {
-                        for (int outputTank : outputTanks) {
-                            if (!this.internalHandler.getFluidInTank(outputTank).isEmpty() && externalHandler.isFluidValid(outputTank, this.internalHandler.getFluidInTank(outputTank))) {
-                                FluidStack fluidStack = this.internalHandler.drain(outputTank, this.internalHandler.getFluidInTank(outputTank).getAmount(), IFluidHandler.FluidAction.SIMULATE);
-                                if (!fluidStack.isEmpty()) {
-                                    int fillAmount = externalHandler.fill(fluidStack, IFluidHandler.FluidAction.EXECUTE);
-                                    fluidStack.setAmount(fillAmount);
-                                    this.internalHandler.drain(outputTank, fluidStack, IFluidHandler.FluidAction.EXECUTE);
-                                }
-                            }
-                        }
-                    }
-                }
+            //
+            if (this.isDirty) {
+                this.isDirty = false;
+                return true;
             }
-        }
-        //
-        if (this.isDirty) {
-            this.isDirty = false;
-            return true;
         }
         return false;
     }

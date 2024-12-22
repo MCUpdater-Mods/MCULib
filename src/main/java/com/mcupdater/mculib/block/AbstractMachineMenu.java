@@ -6,7 +6,6 @@ import com.mcupdater.mculib.inventory.MachineInputSlot;
 import com.mcupdater.mculib.inventory.MachineOutputSlot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
@@ -24,10 +23,10 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
     protected final Player player;
     protected final IItemHandler playerInventory;
     protected final ContainerData data;
-    private final Map<Direction, Component> adjacentNames;
+    private final Map<Direction, String> adjacentNames;
     protected MACHINE machineEntity;
 
-    protected AbstractMachineMenu(MACHINE sourceEntity, MenuType<?> type, int id, Level level, BlockPos blockPos, Inventory inventory, Player player, ContainerData data, Map<Direction,Component> adjacentNames) {
+    protected AbstractMachineMenu(MACHINE sourceEntity, MenuType<?> type, int id, Level level, BlockPos blockPos, Inventory inventory, Player player, ContainerData data, Map<Direction,String> adjacentNames) {
         super(type, id);
         this.machineEntity = sourceEntity;
         this.tileEntity = sourceEntity;
@@ -133,7 +132,7 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
     }
 
     @Override
-    public Component getSideName(Direction side) {
+    public String getSideName(Direction side) {
         return this.adjacentNames.get(side);
     }
 }

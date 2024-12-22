@@ -8,14 +8,20 @@ import net.minecraft.world.item.ItemStack;
 import java.util.Optional;
 
 public class PhantomSlot extends Slot {
+    private ItemStackValidator validator = (unused, itemStack) -> true;
 
     public PhantomSlot(Container pContainer, int index, int xPosition, int yPosition) {
         super(pContainer, index, xPosition, yPosition);
     }
 
+    public PhantomSlot(Container pContainer, int index, int xPosition, int yPosition, ItemStackValidator validator) {
+        super(pContainer,index, xPosition, yPosition);
+        this.validator = validator;
+    }
+
     @Override
     public boolean mayPlace(ItemStack pStack) {
-        return true;
+        return validator.isStackValid(0, pStack);
     }
 
     @Override
@@ -30,7 +36,7 @@ public class PhantomSlot extends Slot {
 
     @Override
     public ItemStack safeInsert(ItemStack pStack, int pCount) {
-        if (!pStack.isEmpty()) {
+        if (!pStack.isEmpty() && mayPlace(pStack)) {
             ItemStack newStack = pStack.copy();
             newStack.setCount(1);
             this.set(newStack);

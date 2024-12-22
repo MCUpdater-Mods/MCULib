@@ -5,7 +5,6 @@ import com.mcupdater.mculib.block.AbstractConfigurableBlockEntity;
 import com.mcupdater.mculib.block.IConfigurableMenu;
 import com.mcupdater.mculib.inventory.InputOutputSettings;
 import com.mcupdater.mculib.inventory.SideSetting;
-import com.mcupdater.mculib.network.ChannelRegistration;
 import com.mcupdater.mculib.network.SideConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -17,7 +16,6 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -49,13 +47,14 @@ public class ConfigPanel extends AbstractParentWidget {
 
     public ConfigPanel(IConfigurableMenu srcMenu, int leftPos, int topPos, int width, int height) {
         super(leftPos, topPos, width, height, CommonComponents.EMPTY, COLOR_BACKGROUND);
+        MCULib.LOGGER.trace("leftPos: %d, topPos: %d, width: %d, height: %d",leftPos,topPos,width,height);
         this.font = Minecraft.getInstance().font;
         this.menu = srcMenu;
         AbstractConfigurableBlockEntity self = this.menu.getBlockEntity();
 
         // Generate tabs
         int hOffset = 0;
-        if (self.getInventory() != null) {
+        if (self.getItemHandler() != null) {
             itemsTab = new TabWidget(leftPos + hOffset, topPos - 22, 22, 22, 0xff969696, 0xffd6d6d6, ITEMS, Component.translatable("gui.processenhancement.items"), this::clickItemTab);
             itemsTab.selected = true;
             itemsTab.active = false;
@@ -88,7 +87,7 @@ public class ConfigPanel extends AbstractParentWidget {
         int vOffset = 9;
         for (Direction side : Direction.values()) {
             /*
-            UpdatableImageButton testButton = new UpdatableImageButton(this.x + 5, this.y + 5 + vOffset, 14, 14, 16, 16, Component.empty(), (button) -> {});
+            UpdatableImageButton testButton = new UpdatableImageButton(this.getX() + 5, this.getY() + 5 + vOffset, 14, 14, 16, 16, Component.empty(), (button) -> {});
             testButton.setResourceLocation(AUTOMATED);
             testButton.setTooltip(Component.translatable("gui.processenhancement.automated"));
             this.buttons.add(testButton);*
@@ -143,7 +142,8 @@ public class ConfigPanel extends AbstractParentWidget {
 
     @Override
     public void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        MCULib.LOGGER.trace("ConfigPanel - x: %d, y: %d, width: %d, height: %d",this.getX(), this.getY(), this.width, this.height);
 
         if (this.isVisible()) {
             AbstractConfigurableBlockEntity blockEntity = this.menu.getBlockEntity();
@@ -157,30 +157,30 @@ public class ConfigPanel extends AbstractParentWidget {
             Level level = blockEntity.getLevel();
             BlockPos blockPos = blockEntity.getBlockPos();
             int yOffset = 0;
-            pGuiGraphics.drawString(font, Component.literal("D: ").append(menu.getSideName(Direction.DOWN)), this.x + 5, this.y + 4 + yOffset, 0xff000000);
+            pGuiGraphics.drawString(font, Component.literal("D: ").append(menu.getSideName(Direction.DOWN)), this.getX() + 5, this.getY() + 4 + yOffset, 0xffffffff);
             renderCaps(pGuiGraphics, yOffset, level, blockPos.below());
             yOffset += 10;
             yOffset += 16;
-            pGuiGraphics.fillGradient(this.x+1, this.y + yOffset + 3, this.x + this.width - 2, this.y + yOffset + 29, 0x33000000, 0x33000000);
-            pGuiGraphics.drawString(font, Component.literal("U: ").append(menu.getSideName(Direction.UP)), this.x + 5, this.y + 4 + yOffset, 0xff000000);
+            pGuiGraphics.fillGradient(this.getX()+1, this.getY() + yOffset + 3, this.getX() + this.width - 2, this.getY() + yOffset + 29, 0x33000000, 0x33000000);
+            pGuiGraphics.drawString(font, Component.literal("U: ").append(menu.getSideName(Direction.UP)), this.getX() + 5, this.getY() + 4 + yOffset, 0xffffffff);
             renderCaps(pGuiGraphics, yOffset, level, blockPos.above());
             yOffset += 10;
             yOffset += 16;
-            pGuiGraphics.drawString(font, Component.literal("N: ").append(menu.getSideName(Direction.NORTH)), this.x + 5, this.y + 4 + yOffset, 0xff000000);
+            pGuiGraphics.drawString(font, Component.literal("N: ").append(menu.getSideName(Direction.NORTH)), this.getX() + 5, this.getY() + 4 + yOffset, 0xffffffff);
             renderCaps(pGuiGraphics, yOffset, level, blockPos.north());
             yOffset += 10;
             yOffset += 16;
-            pGuiGraphics.fillGradient(this.x+1, this.y + yOffset + 3, this.x + this.width - 2, this.y + yOffset + 29, 0x33000000, 0x33000000);
-            pGuiGraphics.drawString(font, Component.literal("S: ").append(menu.getSideName(Direction.SOUTH)), this.x + 5, this.y + 4 + yOffset, 0xff000000);
+            pGuiGraphics.fillGradient(this.getX()+1, this.getY() + yOffset + 3, this.getX() + this.width - 2, this.getY() + yOffset + 29, 0x33000000, 0x33000000);
+            pGuiGraphics.drawString(font, Component.literal("S: ").append(menu.getSideName(Direction.SOUTH)), this.getX() + 5, this.getY() + 4 + yOffset, 0xffffffff);
             renderCaps(pGuiGraphics, yOffset, level, blockPos.south());
             yOffset += 10;
             yOffset += 16;
-            pGuiGraphics.drawString(font, Component.literal("W: ").append(menu.getSideName(Direction.WEST)), this.x + 5, this.y + 4 + yOffset, 0xff000000);
+            pGuiGraphics.drawString(font, Component.literal("W: ").append(menu.getSideName(Direction.WEST)), this.getX() + 5, this.getY() + 4 + yOffset, 0xffffffff);
             renderCaps(pGuiGraphics, yOffset, level, blockPos.west());
             yOffset += 10;
             yOffset += 16;
-            pGuiGraphics.fillGradient(this.x+1, this.y + yOffset + 3, this.x + this.width - 2, this.y + yOffset + 29, 0x33000000, 0x33000000);
-            pGuiGraphics.drawString(font, Component.literal("E: ").append(menu.getSideName(Direction.EAST)), this.x + 5, this.y + 4 + yOffset, 0xff000000);
+            pGuiGraphics.fillGradient(this.getX()+1, this.getY() + yOffset + 3, this.getX() + this.width - 2, this.getY() + yOffset + 29, 0x33000000, 0x33000000);
+            pGuiGraphics.drawString(font, Component.literal("E: ").append(menu.getSideName(Direction.EAST)), this.getX() + 5, this.getY() + 4 + yOffset, 0xffffffff);
             renderCaps(pGuiGraphics, yOffset, level, blockPos.east());
             yOffset += 10;
             for (SideButtonGroup group : this.buttons) {
@@ -192,9 +192,9 @@ public class ConfigPanel extends AbstractParentWidget {
     }
 
     private void renderTooltips(GuiGraphics pPoseStack, int pMouseX, int pMouseY) {
-       for (SideButtonGroup group : this.buttons) {
-           group.renderTooltips(pPoseStack, pMouseX, pMouseY);
-       }
+        for (SideButtonGroup group : this.buttons) {
+            group.renderTooltips(pPoseStack, pMouseX, pMouseY);
+        }
     }
 
     private boolean testForCapability(BlockCapability capability, Level level, BlockPos blockPos) {
@@ -203,13 +203,13 @@ public class ConfigPanel extends AbstractParentWidget {
 
     private void renderCaps(GuiGraphics guiGraphics, int yOffset, Level level, BlockPos blockPos) {
         if (testForCapability(Capabilities.ItemHandler.BLOCK, level, blockPos)) {
-            guiGraphics.blit(ITEMS,this.x + this.width - 36, this.y + 3 + yOffset, 10, 10, 0f, 0f, 16, 16, 16, 16);
+            guiGraphics.blit(ITEMS,this.getX() + this.width - 36, this.getY() + 3 + yOffset, 10, 10, 0f, 0f, 16, 16, 16, 16);
         }
         if (testForCapability(Capabilities.EnergyStorage.BLOCK, level, blockPos)) {
-            guiGraphics.blit(ENERGY,this.x + this.width - 24, this.y + 3 + yOffset, 10, 10, 0f, 0f, 16, 16, 16, 16);
+            guiGraphics.blit(ENERGY,this.getX() + this.width - 24, this.getY() + 3 + yOffset, 10, 10, 0f, 0f, 16, 16, 16, 16);
         }
         if (testForCapability(Capabilities.FluidHandler.BLOCK, level, blockPos)) {
-            guiGraphics.blit(FLUIDS,this.x + this.width - 12, this.y + 3 + yOffset, 10, 10, 0f, 0f, 16, 16, 16, 16);
+            guiGraphics.blit(FLUIDS,this.getX() + this.width - 12, this.getY() + 3 + yOffset, 10, 10, 0f, 0f, 16, 16, 16, 16);
         }
     }
 
@@ -246,7 +246,7 @@ public class ConfigPanel extends AbstractParentWidget {
         public SideButtonGroup(Direction side, int yOffset) {
             this.side = side;
             this.yOffset = yOffset;
-            this.priorityButton = new TextButton(ConfigPanel.this.x + 47, ConfigPanel.this.y + 5 + yOffset, 14, 14, Component.empty(), button -> {
+            this.priorityButton = new TextButton(ConfigPanel.this.getX() + 47, ConfigPanel.this.getY() + 5 + yOffset, 14, 14, Component.empty(), button -> {
                 int delta = Screen.hasShiftDown() ? -1 : 1;
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
@@ -255,7 +255,7 @@ public class ConfigPanel extends AbstractParentWidget {
                 if (newValue < 0) newValue = 5; // No negative values allowed
                 PacketDistributor.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, true, ioSettings.getInputSetting(), ioSettings.getInputAutomatedSide(), newValue));
             }, Component.translatable("side.priority.tooltip"));
-            this.inputModeButton = new UpdatableImageButton(ConfigPanel.this.x + 89, ConfigPanel.this.y + 5 + yOffset, 14, 14, 16, 16, Component.empty(), button -> {
+            this.inputModeButton = new UpdatableImageButton(ConfigPanel.this.getX() + 89, ConfigPanel.this.getY() + 5 + yOffset, 14, 14, 16, 16, Component.empty(), button -> {
                 int delta = Screen.hasShiftDown() ? -1 : 1;
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
@@ -265,7 +265,7 @@ public class ConfigPanel extends AbstractParentWidget {
                 SideSetting newValue = SideSetting.values()[newOrdinal];
                 PacketDistributor.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, true, newValue, ioSettings.getInputAutomatedSide(), ioSettings.getPriority()));
             });
-            this.inputSideButton = new TextButton(ConfigPanel.this.x + 105, ConfigPanel.this.y + 5 + yOffset, 14, 14, Component.empty(), button -> {
+            this.inputSideButton = new TextButton(ConfigPanel.this.getX() + 105, ConfigPanel.this.getY() + 5 + yOffset, 14, 14, Component.empty(), button -> {
                 int delta = Screen.hasShiftDown() ? -1 : 1;
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
@@ -275,7 +275,7 @@ public class ConfigPanel extends AbstractParentWidget {
                 Direction newValue = Direction.values()[newOrdinal];
                 PacketDistributor.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, true, ioSettings.getInputSetting(), newValue, ioSettings.getPriority()));
             }, Component.translatable("side.sneaky.tooltip"));
-            this.outputModeButton = new UpdatableImageButton(ConfigPanel.this.x + 143, ConfigPanel.this.y + 5 + yOffset, 14, 14, 16, 16, Component.empty(), (button) -> {
+            this.outputModeButton = new UpdatableImageButton(ConfigPanel.this.getX() + 143, ConfigPanel.this.getY() + 5 + yOffset, 14, 14, 16, 16, Component.empty(), (button) -> {
                 int delta = Screen.hasShiftDown() ? -1 : 1;
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
@@ -285,7 +285,7 @@ public class ConfigPanel extends AbstractParentWidget {
                 SideSetting newValue = SideSetting.values()[newOrdinal];
                 PacketDistributor.sendToServer(new SideConfig(pos, this.side, ConfigPanel.this.selectedResource, false, newValue, ioSettings.getOutputAutomatedSide(), ioSettings.getPriority()));
             });
-            this.outputSideButton = new TextButton(ConfigPanel.this.x + 159, ConfigPanel.this.y + 5 + yOffset, 14, 14, Component.empty(), (button) -> {
+            this.outputSideButton = new TextButton(ConfigPanel.this.getX() + 159, ConfigPanel.this.getY() + 5 + yOffset, 14, 14, Component.empty(), (button) -> {
                 int delta = Screen.hasShiftDown() ? -1 : 1;
                 AbstractConfigurableBlockEntity entity = ConfigPanel.this.menu.getBlockEntity();
                 BlockPos pos = entity.getBlockPos();
@@ -307,12 +307,12 @@ public class ConfigPanel extends AbstractParentWidget {
 
         public void render(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
             Font font = Minecraft.getInstance().font;
-            guiGraphics.drawString(font, "Priority:", ConfigPanel.this.x + 5, ConfigPanel.this.y + 8 + yOffset, 0xff000000);
+            guiGraphics.drawString(font, "Priority:", ConfigPanel.this.getX() + 5, ConfigPanel.this.getY() + 8 + yOffset, 0xffffffff);
             this.priorityButton.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
-            guiGraphics.drawString(font, "In:", ConfigPanel.this.x + 76, ConfigPanel.this.y + 8 + yOffset, 0xff000000);
+            guiGraphics.drawString(font, "In:", ConfigPanel.this.getX() + 76, ConfigPanel.this.getY() + 8 + yOffset, 0xffffffff);
             this.inputModeButton.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
             this.inputSideButton.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
-            guiGraphics.drawString(font, "Out:", ConfigPanel.this.x + 124, ConfigPanel.this.y + 8 + yOffset, 0xff000000);
+            guiGraphics.drawString(font, "Out:", ConfigPanel.this.getX() + 124, ConfigPanel.this.getY() + 8 + yOffset, 0xffffffff);
             this.outputModeButton.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
             this.outputSideButton.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
         }

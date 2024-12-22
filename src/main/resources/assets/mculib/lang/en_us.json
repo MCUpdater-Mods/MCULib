@@ -11,5 +11,8 @@
   "side.passive.tooltip": "Open",
   "side.automated.tooltip": "Automated",
   "side.sneaky.tooltip": "Side to interact with",
-  "side.priority.tooltip": "Priority"
+  "side.priority.tooltip": "Priority",
+  "mculib.configuration.general": "General Settings",
+  "mculib.configuration.overdrive": "Overdrive",
+  "mculib.configuration.slots_per_tick": "Slots per tick"
 }

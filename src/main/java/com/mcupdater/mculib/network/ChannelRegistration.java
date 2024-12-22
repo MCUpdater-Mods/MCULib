@@ -10,7 +10,7 @@ public class ChannelRegistration {
     @SubscribeEvent
     public static void register(final RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar(MCULib.MODID).versioned("1.0");
-                registrar.playToServer(SideConfig.TYPE, SideConfig.STREAM_CODEC, SideConfig.PayloadHandler::handle);
-                registrar.playToServer(XpExtract.TYPE, XpExtract.STREAM_CODEC, XpExtract.PayloadHandler::handle);
+                registrar.playBidirectional(SideConfig.TYPE, SideConfig.STREAM_CODEC, SideConfig.PayloadHandler::handle);
+                registrar.playBidirectional(XpExtract.TYPE, XpExtract.STREAM_CODEC, XpExtract.PayloadHandler::handle);
     }
 }

@@ -15,11 +15,6 @@ import java.util.List;
 public abstract class AbstractParentWidget extends AbstractWidget implements Renderable, LayoutElement, GuiEventListener, NarratableEntry {
     private final int COLOR_SHADOW = 0x7f373737;
     private final int COLOR_HIGHLIGHT = 0x7fffffff;
-
-    public int x;
-    public int y;
-    protected int width;
-    protected int height;
     private int backgroundColor;
     private List<AbstractWidget> children = new ArrayList<>();
     private boolean visible = true;
@@ -32,11 +27,11 @@ public abstract class AbstractParentWidget extends AbstractWidget implements Ren
     @Override
     public void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         if (this.visible) {
-            pGuiGraphics.fill(x, y, x + width, y + height, backgroundColor);
-            pGuiGraphics.hLine(x, x + width - 1, y, COLOR_HIGHLIGHT);
-            pGuiGraphics.vLine(x, y, y + height - 1, COLOR_HIGHLIGHT);
-            pGuiGraphics.hLine(x, x + width - 1, y + height - 1, COLOR_SHADOW);
-            pGuiGraphics.vLine(x + width - 1, y, y + height - 1, COLOR_SHADOW);
+            pGuiGraphics.fill(getX(), getY(), getX() + width, getY() + height, backgroundColor);
+            pGuiGraphics.hLine(getX(), getX() + width - 1, getY(), COLOR_HIGHLIGHT);
+            pGuiGraphics.vLine(getX(), getY(), getY() + height - 1, COLOR_HIGHLIGHT);
+            pGuiGraphics.hLine(getX(), getX() + width - 1, getY() + height - 1, COLOR_SHADOW);
+            pGuiGraphics.vLine(getX() + width - 1, getY(),  getY() + height - 1, COLOR_SHADOW);
 
             for (Renderable child : this.children) {
                 child.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
@@ -82,36 +77,6 @@ public abstract class AbstractParentWidget extends AbstractWidget implements Ren
     @Override
     public boolean isFocused() {
         return false;
-    }
-
-    @Override
-    public void setX(int pX) {
-
-    }
-
-    @Override
-    public void setY(int pY) {
-
-    }
-
-    @Override
-    public int getX() {
-        return 0;
-    }
-
-    @Override
-    public int getY() {
-        return 0;
-    }
-
-    @Override
-    public int getWidth() {
-        return 0;
-    }
-
-    @Override
-    public int getHeight() {
-        return 0;
     }
 
     @Override

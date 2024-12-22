@@ -6,9 +6,9 @@ import com.mcupdater.mculib.capabilities.FluidResourceHandler;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.minecraft.world.item.crafting.RecipeInput;
 
-public class MachineContainer implements Container {
+public class MachineContainer implements RecipeInput, Container {
 
 
 	private final AbstractMachineBlockEntity machine;
@@ -26,47 +26,52 @@ public class MachineContainer implements Container {
 	}
 
 	@Override
+	public int size() {
+		return machine.getItemHandler().getContainerSize();
+	}
+
+	@Override
 	public int getContainerSize() {
-		return machine.getInventory().getContainerSize();
+		return this.size();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return machine.getInventory().isEmpty();
+		return machine.getItemHandler().isEmpty();
 	}
 
 	@Override
 	public ItemStack getItem(int pSlot) {
-		return machine.getInventory().getItem(pSlot);
+		return machine.getItemHandler().getItem(pSlot);
 	}
 
 	@Override
 	public ItemStack removeItem(int pSlot, int pAmount) {
-		return machine.getInventory().removeItem(pSlot, pAmount);
+		return machine.getItemHandler().removeItem(pSlot, pAmount);
 	}
 
 	@Override
 	public ItemStack removeItemNoUpdate(int pSlot) {
-		return machine.getInventory().removeItemNoUpdate(pSlot);
+		return machine.getItemHandler().removeItemNoUpdate(pSlot);
 	}
 
 	@Override
 	public void setItem(int pSlot, ItemStack pStack) {
-		machine.getInventory().setItem(pSlot, pStack);
+		machine.getItemHandler().setItem(pSlot, pStack);
 	}
 
 	@Override
 	public void setChanged() {
-		machine.getInventory().setChanged();
+		machine.getItemHandler().setChanged();
 	}
 
 	@Override
 	public boolean stillValid(Player pPlayer) {
-		return machine.getInventory().stillValid(pPlayer);
+		return machine.getItemHandler().stillValid(pPlayer);
 	}
 
 	@Override
 	public void clearContent() {
-		machine.getInventory().clearContent();
+		machine.getItemHandler().clearContent();
 	}
 }

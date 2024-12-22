@@ -14,7 +14,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -137,10 +136,12 @@ public abstract class AbstractConfigurableBlockEntity extends BlockEntity implem
     }
 
     protected void tick() {
-        for (AbstractResourceHandler handler : this.configMap.values()) {
-            if (handler.tickHandler(this.level, this.worldPosition)) {
-                this.setChanged();
-                this.notifyClients();
+        if (!this.level.isClientSide()) {
+            for (AbstractResourceHandler handler : this.configMap.values()) {
+                if (handler.tickHandler(this.level, this.worldPosition)) {
+                    this.setChanged();
+                    this.notifyClients();
+                }
             }
         }
     }
@@ -156,7 +157,7 @@ public abstract class AbstractConfigurableBlockEntity extends BlockEntity implem
         return null;
     }
 
-    public Container getInventory() {
+    public ItemResourceHandler getItemHandler() {
         if (this.configMap.get("items") != null)
             return (ItemResourceHandler) this.configMap.get("items");
 

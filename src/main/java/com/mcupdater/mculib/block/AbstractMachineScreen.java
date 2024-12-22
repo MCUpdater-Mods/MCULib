@@ -1,10 +1,10 @@
 package com.mcupdater.mculib.block;
 
+import com.mcupdater.mculib.MCULib;
 import com.mcupdater.mculib.gui.ConfigPanel;
 import com.mcupdater.mculib.gui.TabConfig;
 import com.mcupdater.mculib.gui.WidgetPower;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Renderable;
@@ -31,7 +31,6 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
     @Override
     protected void init() {
         super.init();
-        this.addRenderableWidget(new WidgetPower(this.leftPos + 153, this.topPos + 5, 18, 71, menu.getEnergyHandler(), WidgetPower.Orientation.VERTICAL));
         this.registerWidgets();
         this.configPanel = new ConfigPanel(this.menu, this.leftPos, this.topPos, this.imageWidth, this.imageHeight);
         this.configPanel.setVisible(false);
@@ -45,6 +44,7 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
     }
 
     public void registerWidgets() {
+        extraWidgets.add(this.addRenderableWidget(new WidgetPower(this.leftPos + 153, this.topPos + 5, 18, 71, menu.getEnergyHandler(), WidgetPower.Orientation.VERTICAL)));
     }
 
     @Override
@@ -61,20 +61,21 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
     public void renderNoSlots(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         int i = this.leftPos;
         int j = this.topPos;
-        this.renderBg(guiGraphics, pPartialTick, pMouseX, pMouseY);
+        this.renderBackground(guiGraphics, pMouseX, pMouseY, pPartialTick);
+        MCULib.LOGGER.trace("AbstractMachineScreen - leftPos: %d, topPos: %d, width: %d, height: %d",this.leftPos, this.topPos, this.width, this.height);
         NeoForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Background(this, guiGraphics, pMouseX, pMouseY));
         for(Renderable widget : this.renderables) {
             widget.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
         }
         RenderSystem.disableDepthTest();
         guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(i, j, 0.0D);
-        RenderSystem.applyModelViewMatrix();
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        guiGraphics.pose().translate((float) i, (float) j, 0.0F);
+        //RenderSystem.applyModelViewMatrix();
+        //RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         this.renderLabels(guiGraphics, pMouseX, pMouseY);
         NeoForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Foreground(this, guiGraphics, pMouseX, pMouseY));
         guiGraphics.pose().popPose();
-        RenderSystem.applyModelViewMatrix();
+        //RenderSystem.applyModelViewMatrix();
         RenderSystem.enableDepthTest();
     }
 
