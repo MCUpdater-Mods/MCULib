@@ -5,6 +5,7 @@ import com.mcupdater.mculib.setup.Config;
 import com.mcupdater.mculib.setup.ModSetup;
 import com.mcupdater.mculib.setup.Registration;
 import com.mojang.logging.LogUtils;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -22,10 +23,10 @@ public class MCULib
     public MCULib(IEventBus modEventBus, ModContainer modContainer) {
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.COMMON_CONFIG);
-        modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
 
         Registration.init(modEventBus);
         modEventBus.addListener(ModSetup::init);
         modEventBus.addListener(ChannelRegistration::register);
     }
+
 }
