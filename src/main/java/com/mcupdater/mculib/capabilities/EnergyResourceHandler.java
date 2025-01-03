@@ -126,6 +126,8 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
                         }
                     }
                 }
+            }
+            for (Direction side : directions) {
                 if (this.getIOSettings(side) != null && this.getIOSettings(side).getOutputSetting().equals(SideSetting.AUTOMATED)) {
                     IEnergyStorage externalHandler = outboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getOutputAutomatedSide())).getCapability();
                     if (externalHandler != null) {

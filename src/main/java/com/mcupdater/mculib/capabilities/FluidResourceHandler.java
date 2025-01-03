@@ -108,6 +108,9 @@ public class FluidResourceHandler extends AbstractResourceHandler {
                         }
                     }
                 }
+            }
+            for (Direction side : directions) {
+                InputOutputSettings ioSettings = this.sideIOMap.get(side);
                 if (ioSettings != null && ioSettings.getOutputSetting().equals(SideSetting.AUTOMATED)) {
                     IFluidHandler externalHandler = outboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getOutputAutomatedSide())).getCapability();
                     if (externalHandler != null) {

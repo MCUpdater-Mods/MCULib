@@ -116,6 +116,10 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
                     if (slotTickLimit < Config.SLOTS_PER_TICK.get()) currentSlot = 0;
                 }
             }
+        }
+        for (Direction side : directions) {
+            currentSide = side;
+            InputOutputSettings ioSettings = this.sideIOMap.get(side);
             if (ioSettings != null && ioSettings.getOutputSetting().equals(SideSetting.AUTOMATED)) {
                 IItemHandler externalHandler = outboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getOutputAutomatedSide())).getCapability();
                 if (externalHandler != null) {
