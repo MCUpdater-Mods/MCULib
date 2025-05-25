@@ -44,7 +44,16 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
     }
 
     public void registerWidgets() {
-        extraWidgets.add(this.addRenderableWidget(new WidgetPower(this.leftPos + 153, this.topPos + 5, 18, 71, menu.getEnergyHandler(), WidgetPower.Orientation.VERTICAL)));
+        extraWidgets.add(
+                this.addRenderableWidget(
+                        new WidgetPower(
+                                this.leftPos + 153,
+                                this.topPos + 5,
+                                18,
+                                71,
+                                menu.getEnergyHandler(),
+                                WidgetPower.Orientation.VERTICAL
+                        )));
     }
 
     @Override

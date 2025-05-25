@@ -1,5 +1,6 @@
 package com.mcupdater.mculib.capabilities;
 
+import com.mcupdater.mculib.MCULib;
 import com.mcupdater.mculib.inventory.FluidStackValidator;
 import com.mcupdater.mculib.inventory.InputOutputSettings;
 import com.mcupdater.mculib.inventory.SideSetting;
@@ -22,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.mcupdater.mculib.setup.Config.DEBUG;
 
 public class FluidResourceHandler extends AbstractResourceHandler {
 
@@ -94,12 +97,14 @@ public class FluidResourceHandler extends AbstractResourceHandler {
                 if (ioSettings != null && ioSettings.getInputSetting().equals(SideSetting.AUTOMATED)) {
                     IFluidHandler externalHandler = inboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getInputAutomatedSide())).getCapability();
                     if (externalHandler != null) {
+                        if (DEBUG.get()) MCULib.LOGGER.debug("Input - {} [{}]: FluidHandler: {}:{}",side,pBlockPos.relative(side).toShortString(),externalHandler.getFluidInTank(0).getFluid().toString(),externalHandler.getFluidInTank(0).getAmount());
                         for (int remoteTank = 0; remoteTank < externalHandler.getTanks(); remoteTank++) {
                             for (int inputTank : inputTanks) {
                                 if (!externalHandler.getFluidInTank(remoteTank).isEmpty() && this.internalHandler.isFluidValid(inputTank, externalHandler.getFluidInTank(remoteTank))) {
                                     FluidStack fluidStack = externalHandler.drain(externalHandler.getFluidInTank(remoteTank).getAmount(), IFluidHandler.FluidAction.SIMULATE);
                                     if (!fluidStack.isEmpty()) {
                                         int fillAmount = this.internalHandler.fill(inputTank, fluidStack, IFluidHandler.FluidAction.EXECUTE);
+                                        if (DEBUG.get()) MCULib.LOGGER.debug("  Filled amount: {}", fillAmount);
                                         fluidStack.setAmount(fillAmount);
                                         externalHandler.drain(fluidStack, IFluidHandler.FluidAction.EXECUTE);
                                     }
@@ -114,12 +119,14 @@ public class FluidResourceHandler extends AbstractResourceHandler {
                 if (ioSettings != null && ioSettings.getOutputSetting().equals(SideSetting.AUTOMATED)) {
                     IFluidHandler externalHandler = outboundCache.computeIfAbsent(side, k -> this.lookupExternalHandler((ServerLevel) pLevel, pBlockPos.relative(side), this.getIOSettings(side).getOutputAutomatedSide())).getCapability();
                     if (externalHandler != null) {
+                        if (DEBUG.get()) MCULib.LOGGER.debug("Output - {} [{}]: FluidHandler: {}:{}",side,pBlockPos.relative(side).toShortString(),externalHandler.getFluidInTank(0).getFluid().toString(),externalHandler.getFluidInTank(0).getAmount());
                         for (int remoteTank = 0; remoteTank < externalHandler.getTanks(); remoteTank++) {
                             for (int outputTank : outputTanks) {
                                 if (!this.internalHandler.getFluidInTank(outputTank).isEmpty() && externalHandler.isFluidValid(outputTank, this.internalHandler.getFluidInTank(outputTank))) {
                                     FluidStack fluidStack = this.internalHandler.drain(outputTank, this.internalHandler.getFluidInTank(outputTank).getAmount(), IFluidHandler.FluidAction.SIMULATE);
                                     if (!fluidStack.isEmpty()) {
                                         int fillAmount = externalHandler.fill(fluidStack, IFluidHandler.FluidAction.EXECUTE);
+                                        if (DEBUG.get()) MCULib.LOGGER.debug("  Filled amount: {}", fillAmount);
                                         fluidStack.setAmount(fillAmount);
                                         this.internalHandler.drain(outputTank, fluidStack, IFluidHandler.FluidAction.EXECUTE);
                                     }

@@ -14,5 +14,6 @@
   "side.priority.tooltip": "Priority",
   "mculib.configuration.general": "General Settings",
   "mculib.configuration.overdrive": "Overdrive",
-  "mculib.configuration.slots_per_tick": "Slots per tick"
+  "mculib.configuration.slots_per_tick": "Slots per tick",
+  "mculib.configuration.debug": "Debug"
 }
