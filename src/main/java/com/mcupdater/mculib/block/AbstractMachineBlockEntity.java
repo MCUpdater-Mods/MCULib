@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import static com.mcupdater.mculib.setup.Config.OVERDRIVE_ENABLED;
 
-public abstract class AbstractMachineBlockEntity extends AbstractConfigurableBlockEntity implements IMachineGuiProvider {
+public abstract class AbstractMachineBlockEntity extends AbstractConfigurableBlockEntity implements IMachineGuiProvider, IPoweredMachine {
     private final int powerUse;
     protected float storedXP = 0;
     protected int workProgress;
@@ -99,4 +99,30 @@ public abstract class AbstractMachineBlockEntity extends AbstractConfigurableBlo
         notifyClients();
     }
 
+    @Override
+    public int getMaxReceiveRate() {
+        if (this.configMap.containsKey("power")) {
+            return ((EnergyResourceHandler) this.configMap.get("power")).getMaxReceive();
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
+    public int getMaxExtractRate() {
+        if (this.configMap.containsKey("power")) {
+            return ((EnergyResourceHandler) this.configMap.get("power")).getMaxExtract();
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
+    public int getCapacity() {
+        if (this.configMap.containsKey("power")) {
+            return ((EnergyResourceHandler) this.configMap.get("power")).getCapacity();
+        } else {
+            return 0;
+        }
+    }
 }

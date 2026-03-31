@@ -3,15 +3,12 @@ package com.mcupdater.mculib;
 import com.mcupdater.mculib.network.ChannelRegistration;
 import com.mcupdater.mculib.setup.Config;
 import com.mcupdater.mculib.setup.ModSetup;
-import com.mcupdater.mculib.setup.Registration;
+import com.mcupdater.mculib.setup.MCULibRegistration;
 import com.mojang.logging.LogUtils;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.neoforge.client.gui.ConfigurationScreen;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.slf4j.Logger;
 
 @Mod("mculib")
@@ -24,7 +21,7 @@ public class MCULib
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.COMMON_CONFIG);
 
-        Registration.init(modEventBus);
+        MCULibRegistration.init(modEventBus);
         modEventBus.addListener(ModSetup::init);
         modEventBus.addListener(ChannelRegistration::register);
     }

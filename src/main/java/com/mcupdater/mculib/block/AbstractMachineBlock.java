@@ -23,6 +23,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,6 +63,13 @@ public abstract class AbstractMachineBlock extends BaseEntityBlock {
                 ((AbstractMachineBlockEntity) blockEntity).setCustomName(pStack.getHoverName());
             }
         }
+        @Nullable IEnergyStorage energyStorage = pStack.getCapability(Capabilities.EnergyStorage.ITEM);
+        if (energyStorage != null) {
+            if (pLevel.getBlockEntity(pPos) instanceof AbstractMachineBlockEntity machineBlockEntity) {
+                machineBlockEntity.getEnergyStorage().setEnergy(energyStorage.getEnergyStored());
+            }
+        }
+
     }
 
     @Override

@@ -68,7 +68,7 @@ public class TabWidget extends AbstractWidget {
             if (pButton == 0) { // Left click
                 if (this.isMouseOver(pMouseX, pMouseY)) {
                     this.playDownSound(Minecraft.getInstance().getSoundManager());
-                    this.onClick(pMouseX, pMouseY);
+                    this.onClick(pMouseX, pMouseY, pButton);
                     return true;
                 }
             }
@@ -79,7 +79,7 @@ public class TabWidget extends AbstractWidget {
         return false;
     }
 
-    public void onClick(double pMouseX, double pMouseY) {
+    public void onClick(double pMouseX, double pMouseY, int button) {
         this.selected = !this.selected;
         this.clickAction.click(pMouseX, pMouseY);
     }
