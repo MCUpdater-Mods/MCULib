@@ -4,10 +4,12 @@ import com.mcupdater.mculib.capabilities.ItemResourceHandler;
 import com.mcupdater.mculib.capabilities.PowerTrackingMenu;
 import com.mcupdater.mculib.inventory.MachineInputSlot;
 import com.mcupdater.mculib.inventory.MachineOutputSlot;
+import com.mcupdater.mculib.inventory.PhantomSlot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
@@ -134,5 +136,14 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
     @Override
     public String getSideName(Direction side) {
         return this.adjacentNames.get(side);
+    }
+
+    @Override
+    public void doClick(int slotId, int button, ClickType clickType, Player player) {
+        // Don't fill phantom slots while drag-clicking (prevents loss of items)
+        if (slotId >= 0 && this.getSlot(slotId) instanceof PhantomSlot && clickType == ClickType.QUICK_CRAFT && getQuickcraftHeader(button) == 1) {
+            return;
+        }
+        super.doClick(slotId, button, clickType, player);
     }
 }

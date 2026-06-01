@@ -26,6 +26,7 @@ import java.util.*;
 import java.util.function.Function;
 
 public class ItemResourceHandler extends AbstractResourceHandler implements WorldlyContainer {
+    private int maxStackSize = 64;
     private Level level;
     private NonNullList<ItemStack> itemStorage;
     private int[] exposedSlots;
@@ -55,6 +56,16 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
         this.inboundCache = new HashMap<>();
         this.outboundCache = new HashMap<>();
         initHandlers();
+    }
+
+    public ItemResourceHandler(Level pLevel, int size, int[] exposedSlots, int[] inputSlots, int[] outputSlots, Function<Player,Boolean> playerValidator, int maxStack) {
+        this(pLevel, size, exposedSlots, inputSlots, outputSlots, playerValidator);
+        this.maxStackSize = maxStack;
+    }
+
+    @Override
+    public int getMaxStackSize() {
+        return maxStackSize;
     }
 
     public void initHandlers() {

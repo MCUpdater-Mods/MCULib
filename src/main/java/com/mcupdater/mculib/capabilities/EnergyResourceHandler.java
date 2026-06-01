@@ -1,6 +1,5 @@
 package com.mcupdater.mculib.capabilities;
 
-import com.mcupdater.mculib.MCULib;
 import com.mcupdater.mculib.inventory.InputOutputSettings;
 import com.mcupdater.mculib.inventory.SideSetting;
 import net.minecraft.core.BlockPos;
@@ -34,7 +33,7 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
         this(pLevel, capacity, maxTransfer, maxTransfer, reservePower);
         for (Direction side : Direction.values()) {
             InputOutputSettings sideIO = this.sideIOMap.get(side);
-            sideIO.setInputSetting(SideSetting.AUTOMATED);
+            sideIO.setInputSetting(SideSetting.PASSIVE);
             sideIO.setOutputSetting(SideSetting.AUTOMATED);
             this.updateIOSettings(side, sideIO);
         }

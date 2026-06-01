@@ -39,7 +39,7 @@ public class PhantomSlot extends Slot {
         if (!pStack.isEmpty() && mayPlace(pStack)) {
             ItemStack newStack = pStack.copy();
             newStack.setCount(1);
-            this.set(newStack);
+            this.setByPlayer(newStack);
         }
         return pStack;
     }
@@ -48,5 +48,10 @@ public class PhantomSlot extends Slot {
     public Optional<ItemStack> tryRemove(int p_150642_, int p_150643_, Player p_150644_) {
         this.set(ItemStack.EMPTY);
         return Optional.of(ItemStack.EMPTY);
+    }
+
+    @Override
+    public boolean isFake() {
+        return true;
     }
 }
