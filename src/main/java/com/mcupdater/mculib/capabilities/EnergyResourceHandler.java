@@ -12,10 +12,7 @@ import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class EnergyResourceHandler extends AbstractResourceHandler {
     private boolean reservePower;
@@ -31,12 +28,6 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
 
     public EnergyResourceHandler(Level pLevel, int capacity, int maxTransfer, boolean reservePower) {
         this(pLevel, capacity, maxTransfer, maxTransfer, reservePower);
-        for (Direction side : Direction.values()) {
-            InputOutputSettings sideIO = this.sideIOMap.get(side);
-            sideIO.setInputSetting(SideSetting.PASSIVE);
-            sideIO.setOutputSetting(SideSetting.AUTOMATED);
-            this.updateIOSettings(side, sideIO);
-        }
     }
 
     public EnergyResourceHandler(Level pLevel, int capacity, int maxReceive, int maxExtract, boolean reservePower) {
@@ -51,6 +42,11 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
         this.inboundCache = new HashMap<>();
         this.outboundCache = new HashMap<>();
         initHandlers();
+        setDefaultSideConfig();
+    }
+
+    public void setDefaultSideConfig() {
+        Arrays.stream(Direction.values()).sequential().forEach(side -> this.updateIOSettings(side, new InputOutputSettings(SideSetting.PASSIVE, side.getOpposite(), SideSetting.DISABLED, side.getOpposite(), (byte) 0)));
     }
 
     public void initHandlers() {
