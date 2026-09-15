@@ -13,6 +13,6 @@ public class TabConfig extends TabWidget {
     private static ResourceLocation WRENCH = ResourceLocation.fromNamespaceAndPath(MCULib.MODID, "textures/gui/icon/wrench.png");
 
     public TabConfig(int x, int y, int width, int height, ClickAction<AbstractContainerScreen<AbstractMachineMenu<?>>> clickAction) {
-        super(x, y, width, height, COLOR_BACKGROUND, COLOR_SELECTED, WRENCH, Component.translatable("gui.processenhancement.config"), clickAction);
+        super(x, y, width, height, COLOR_BACKGROUND, COLOR_SELECTED, WRENCH, Component.translatable("gui.mculib.config"), clickAction);
     }
 }

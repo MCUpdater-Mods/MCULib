@@ -55,7 +55,7 @@ public class ConfigPanel extends AbstractParentWidget {
         // Generate tabs
         int hOffset = 0;
         if (self.getItemHandler() != null) {
-            itemsTab = new TabWidget(leftPos + hOffset, topPos - 22, 22, 22, 0xff969696, 0xffd6d6d6, ITEMS, Component.translatable("gui.processenhancement.items"), this::clickItemTab);
+            itemsTab = new TabWidget(leftPos + hOffset, topPos - 22, 22, 22, 0xff969696, 0xffd6d6d6, ITEMS, Component.translatable("gui.mculib.items"), this::clickItemTab);
             itemsTab.selected = true;
             itemsTab.active = false;
             selectedResource = "items";
@@ -63,7 +63,7 @@ public class ConfigPanel extends AbstractParentWidget {
             hOffset += 23;
         }
         if (self.getEnergyStorage() != null) {
-            energyTab = new TabWidget(leftPos + hOffset, topPos - 22, 22, 22, 0xff969696, 0xffd6d6d6, ENERGY, Component.translatable("gui.processenhancement.energy"), this::clickEnergyTab);
+            energyTab = new TabWidget(leftPos + hOffset, topPos - 22, 22, 22, 0xff969696, 0xffd6d6d6, ENERGY, Component.translatable("gui.mculib.energy"), this::clickEnergyTab);
             if (itemsTab == null) {
                 energyTab.selected = true;
                 energyTab.active = false;
@@ -73,7 +73,7 @@ public class ConfigPanel extends AbstractParentWidget {
             hOffset += 23;
         }
         if (self.getFluidHandler() != null) {
-            fluidsTab = new TabWidget(leftPos + hOffset, topPos - 22, 22, 22, 0xff969696, 0xffd6d6d6, FLUIDS, Component.translatable("gui.processenhancement.fluids"), this::clickFluidTab);
+            fluidsTab = new TabWidget(leftPos + hOffset, topPos - 22, 22, 22, 0xff969696, 0xffd6d6d6, FLUIDS, Component.translatable("gui.mculib.fluids"), this::clickFluidTab);
             if (itemsTab == null && energyTab == null) {
                 fluidsTab.selected = true;
                 fluidsTab.active = false;

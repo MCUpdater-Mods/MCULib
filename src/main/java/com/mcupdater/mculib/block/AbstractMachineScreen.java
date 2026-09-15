@@ -1,9 +1,7 @@
 package com.mcupdater.mculib.block;
 
 import com.mcupdater.mculib.MCULib;
-import com.mcupdater.mculib.gui.ConfigPanel;
-import com.mcupdater.mculib.gui.TabConfig;
-import com.mcupdater.mculib.gui.WidgetPower;
+import com.mcupdater.mculib.gui.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -22,6 +20,8 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
 
     private ConfigPanel configPanel;
     private TabConfig configTab;
+    private RedstonePanel redstonePanel;
+    private TabRedstone redstoneTab;
     private List<AbstractWidget> extraWidgets = new ArrayList<>();
 
     public AbstractMachineScreen(MENU pMenu, Inventory pPlayerInventory, Component pTitle) {
@@ -36,11 +36,19 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
         this.configPanel.setVisible(false);
         this.configTab = this.addRenderableWidget(new TabConfig(this.leftPos - 22, this.topPos + 2,22,22, (mouseX, mouseY) -> {
             this.configPanel.setVisible(!this.configPanel.isVisible());
+            this.redstonePanel.setVisible(false);
             for (AbstractWidget widget : extraWidgets) {
                 widget.visible = !widget.visible;
             }
         }));
         this.configTab.setChild(this.configPanel);
+        this.redstoneTab = this.addRenderableWidget(new TabRedstone(this.leftPos - 22, this.topPos + 2 + 22, 22, 22, (mouseX, mouseY) -> {
+            this.redstonePanel.setVisible(!this.redstonePanel.isVisible());
+            this.configPanel.setVisible(false);
+            for (AbstractWidget widget : extraWidgets) {
+                widget.visible = !widget.visible;
+            }
+        }));
     }
 
     public void registerWidgets() {
@@ -59,7 +67,7 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
-        if (!this.configPanel.isVisible()) {
+        if (!(this.configPanel.isVisible() || this.redstonePanel.isVisible())) {
             super.render(guiGraphics, mouseX, mouseY, partialTicks);
             this.renderTooltip(guiGraphics, mouseX, mouseY);
         } else {
