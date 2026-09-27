@@ -12,5 +12,6 @@ public class ChannelRegistration {
         final PayloadRegistrar registrar = event.registrar(MCULib.MODID).versioned("1.0");
                 registrar.playBidirectional(SideConfig.TYPE, SideConfig.STREAM_CODEC, SideConfig.PayloadHandler::handle);
                 registrar.playBidirectional(XpExtract.TYPE, XpExtract.STREAM_CODEC, XpExtract.PayloadHandler::handle);
+                registrar.playBidirectional(RedstoneConfig.TYPE, RedstoneConfig.STREAM_CODEC, RedstoneConfig.PayloadHandler::handle);
     }
 }

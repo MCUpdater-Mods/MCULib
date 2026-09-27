@@ -7,6 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -148,10 +149,11 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
                     // Each receiver should get their even share of the available energy and remove from this machine the amount of energy that was transferred
                     removed += this.getInternalHandler().extractEnergy(receiver.receiveEnergy(shared,false),false);
                 }
-                return removed > 0;
             }
         }
-        return false;
+        var isDirty = this.dirty;
+        this.dirty = false;
+        return isDirty;
     }
 
     private BlockCapabilityCache<IEnergyStorage, Direction> lookupExternalHandler(ServerLevel level, BlockPos blockPos, Direction direction) {
@@ -176,6 +178,18 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
         super.saveAdditional(compound, pRegistries);
     }
 
+    @Override
+    public int getComparatorOutput(boolean inverted) {
+        if (this.internalHandler.getMaxEnergyStored() > 0) {
+            float fill = 0.0F;
+            fill = ((float) this.internalHandler.getEnergyStored() / (float) this.capacity);
+            var level = Mth.lerpDiscrete(fill, 0, 15);
+            return inverted ? 15 - level : level;
+        } else {
+            return 0;
+        }
+    }
+
     public class ConfigurableEnergyHandler implements IEnergyStorage {
         private boolean enabled;
         private boolean receive;
@@ -198,6 +212,7 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
                     if (storage.level != null) {
                         lastReceiveTick = storage.level.getGameTime();
                     }
+                    storage.setDirty();
                 }
                 return energyReceived;
             }
@@ -210,8 +225,10 @@ public class EnergyResourceHandler extends AbstractResourceHandler {
             if (canExtract()) {
                 int energyExtracted = Math.min(storage.energy, Math.min(storage.maxExtract, maxExtract));
                 //MCULib.LOGGER.debug("Extracted: {} Requested: {} Simulated: {}",energyExtracted,maxExtract,simulate );
-                if (!simulate)
+                if (!simulate) {
                     energy -= energyExtracted;
+                    storage.setDirty();
+                }
                 return energyExtracted;
             }
             return 0;

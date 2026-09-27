@@ -1,5 +1,6 @@
 package com.mcupdater.mculib.block;
 
+import com.mcupdater.mculib.MCULib;
 import com.mcupdater.mculib.helpers.DataHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,10 +34,11 @@ import java.util.Map;
 public abstract class AbstractMachineBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty ACTIVE = BlockStateProperties.LIT;
+    public static final BooleanProperty ENABLED =  BlockStateProperties.ENABLED;
 
     public AbstractMachineBlock(Properties props) {
         super(props);
-        registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
+        registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false).setValue(ENABLED, true));
     }
 
     @Override
@@ -52,7 +54,7 @@ public abstract class AbstractMachineBlock extends BaseEntityBlock {
     @Override
     protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(FACING,ACTIVE);
+        builder.add(FACING,ACTIVE,ENABLED);
     }
 
     @Override
@@ -106,6 +108,55 @@ public abstract class AbstractMachineBlock extends BaseEntityBlock {
             Container container = entity.getItemHandler();
             if (container != null) {
                 Containers.dropContents(pLevel, pPos, container);
+            }
+        }
+    }
+
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    @Override
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof AbstractConfigurableBlockEntity entity) {
+            switch (entity.comparatorBehavior.resourceType()) {
+                case "power":
+                    return entity.getEnergyStorage().getComparatorOutput(entity.comparatorBehavior.inverted());
+                case "fluids":
+                    return entity.getFluidHandler().getComparatorOutput(entity.comparatorBehavior.inverted());
+                case "items":
+                    return entity.getItemHandler().getComparatorOutput(entity.comparatorBehavior.inverted());
+                default:
+                    return 0;
+            }
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
+        this.updateActive(level, pos, state);
+    }
+
+    protected void updateActive(Level level, BlockPos pos, BlockState state) {
+        boolean currentState = state.getValue(ENABLED);
+        boolean newState = false;
+        boolean signal = level.hasNeighborSignal(pos);
+        if (level.getBlockEntity(pos) instanceof AbstractConfigurableBlockEntity entity) {
+            switch (entity.signalBehavior) {
+                case IGNORE:
+                    newState = true;
+                    break;
+                case REQUIRED:
+                    newState = signal;
+                    break;
+                case INVERTED:
+                    newState = !signal;
+            }
+            if (currentState != newState) {
+                level.setBlock(pos, state.setValue(ENABLED, newState), 2);
             }
         }
     }

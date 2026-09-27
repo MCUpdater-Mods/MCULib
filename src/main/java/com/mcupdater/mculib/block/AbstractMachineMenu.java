@@ -18,6 +18,7 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -26,6 +27,7 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
     protected final IItemHandler playerInventory;
     protected final ContainerData data;
     private final Map<Direction, String> adjacentNames;
+
     protected MACHINE machineEntity;
 
     protected AbstractMachineMenu(MACHINE sourceEntity, MenuType<?> type, int id, Level level, BlockPos blockPos, Inventory inventory, Player player, ContainerData data, Map<Direction,String> adjacentNames) {
@@ -82,26 +84,28 @@ public abstract class AbstractMachineMenu<MACHINE extends AbstractMachineBlockEn
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
+        int invOffset = 2; // Number of slots that are not part of the player inventory
+        int hotbarOffset = invOffset + 27;
         ItemStack itemstack = ItemStack.EMPTY;
         ItemResourceHandler resourceHandler = (ItemResourceHandler) this.machineEntity.configMap.get("items");
         Slot slot = this.slots.get(index);
-        if (slot != null && slot.hasItem()) {
+        if (slot.hasItem()) {
             ItemStack stackInSlot = slot.getItem();
             itemstack = stackInSlot.copy();
-            if (index == 0 || index == 1) { // Input slot (0) or Output slot (1)
-                if (!this.moveItemStackTo(stackInSlot, 2,38, true)) {
+            if (index < invOffset) { // Input slot (0) or Output slot (1)
+                if (!this.moveItemStackTo(stackInSlot, invOffset,invOffset + 36, true)) {
                     return ItemStack.EMPTY;
                 }
             } else { // Player inventory slots
                 if (resourceHandler.canPlaceItem(0, stackInSlot)) { // Insert fuel
-                    if (!this.moveItemStackTo(stackInSlot, 0, 1, false)) {
+                    if (!this.moveItemStackTo(stackInSlot, 0, invOffset, false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (index >= 2 && index < 29) { // Move to hotbar
-                    if (!this.moveItemStackTo(stackInSlot, 29, 38, false)) {
+                } else if (index >= invOffset && index < invOffset + 27) { // Move to hotbar
+                    if (!this.moveItemStackTo(stackInSlot, hotbarOffset, hotbarOffset + 9, false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (index >= 29 && index < 38 && !this.moveItemStackTo(stackInSlot, 2, 29, false)) { // Move to inventory
+                } else if (index >= hotbarOffset && index < hotbarOffset + 9 && !this.moveItemStackTo(stackInSlot, invOffset, hotbarOffset, false)) { // Move to inventory
                     return ItemStack.EMPTY;
                 }
             }

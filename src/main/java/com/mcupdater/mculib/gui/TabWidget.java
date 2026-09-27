@@ -106,4 +106,8 @@ public class TabWidget extends AbstractWidget {
     public interface ClickAction<T> {
         void click(double mouseX, double mouseY);
     }
+
+    public void deselect() {
+        this.selected = false;
+    }
 }

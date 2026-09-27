@@ -1,5 +1,6 @@
 package com.mcupdater.mculib.capabilities;
 
+import com.mcupdater.mculib.MCULib;
 import com.mcupdater.mculib.inventory.InputOutputSettings;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractResourceHandler {
+    protected boolean dirty;
+
     public AbstractResourceHandler() {
         this.sideIOMap = InputOutputSettings.getDefaultMap();
     }
@@ -48,4 +51,9 @@ public abstract class AbstractResourceHandler {
         return directions;
     }
 
+    public abstract int getComparatorOutput(boolean inverted);
+
+    public void setDirty() {
+        this.dirty = true;
+    }
 }

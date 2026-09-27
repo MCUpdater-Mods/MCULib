@@ -10,6 +10,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Player;
@@ -174,6 +175,34 @@ public class ItemResourceHandler extends AbstractResourceHandler implements Worl
     public void saveAdditional(CompoundTag compound, HolderLookup.Provider pRegistries) {
         ContainerHelper.saveAllItems(compound, this.itemStorage, pRegistries);
         super.saveAdditional(compound, pRegistries);
+    }
+
+    @Override
+    public int getComparatorOutput(boolean inverted) {
+        var storage = this.itemStorage;
+        float fill = 0.0F;
+        if (outputSlots.length > 0) {
+           for (int slot : outputSlots) {
+               var itemStack = storage.get(slot);
+               if (!itemStack.isEmpty()) {
+                   fill += (float) itemStack.getCount() / (float) Math.min(this.maxStackSize, itemStack.getMaxStackSize());
+               }
+               fill /= outputSlots.length;
+               int level = Mth.lerpDiscrete(fill, 0, 15);
+               return inverted ? 15 - level : level;
+           }
+        } else {
+            for (int slot : inputSlots) {
+                var itemStack = storage.get(slot);
+                if (!itemStack.isEmpty()) {
+                    fill += (float) itemStack.getCount() / (float) Math.min(this.maxStackSize, itemStack.getMaxStackSize());
+                }
+                fill /= inputSlots.length;
+               int level = Mth.lerpDiscrete(fill, 0, 15);
+               return inverted ? 15 - level : level;
+            }
+        }
+        return 0;
     }
 
     // WorldlyContainer methods

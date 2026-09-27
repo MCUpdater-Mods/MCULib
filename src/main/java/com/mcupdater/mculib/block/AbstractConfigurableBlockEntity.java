@@ -1,11 +1,15 @@
 package com.mcupdater.mculib.block;
 
+import com.mcupdater.mculib.MCULib;
 import com.mcupdater.mculib.capabilities.AbstractResourceHandler;
 import com.mcupdater.mculib.capabilities.EnergyResourceHandler;
 import com.mcupdater.mculib.capabilities.FluidResourceHandler;
 import com.mcupdater.mculib.capabilities.ItemResourceHandler;
 import com.mcupdater.mculib.inventory.InputOutputSettings;
 import com.mcupdater.mculib.inventory.SideSetting;
+import com.mcupdater.mculib.network.RedstoneConfig;
+import com.mcupdater.mculib.redstone.ComparatorBehavior;
+import com.mcupdater.mculib.redstone.SignalBehavior;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -22,15 +26,20 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractConfigurableBlockEntity extends BlockEntity implements Nameable, MenuProvider {
     protected Component name;
     protected Map<String, AbstractResourceHandler> configMap = new HashMap<>();
+    protected SignalBehavior signalBehavior;
+    protected ComparatorBehavior comparatorBehavior;
 
     public AbstractConfigurableBlockEntity(BlockEntityType<?> pType, BlockPos pWorldPosition, BlockState pBlockState) {
         super(pType, pWorldPosition, pBlockState);
-
+        signalBehavior = SignalBehavior.IGNORE;
+        comparatorBehavior = new ComparatorBehavior("invalid", false); // Non-null behavior variable... just in case
     }
 
     @Override
@@ -99,6 +108,11 @@ public abstract class AbstractConfigurableBlockEntity extends BlockEntity implem
                 handler.loadAdditional(fluids, pRegistries);
             }
         }
+        if (pTag.contains("RedstoneConfig")) {
+            CompoundTag redstoneConfig = pTag.getCompound("RedstoneConfig");
+            this.signalBehavior = SignalBehavior.valueOf(redstoneConfig.getString("signalBehavior"));
+            this.comparatorBehavior = new ComparatorBehavior(redstoneConfig.getString("comparatorResource"),redstoneConfig.getBoolean("comparatorInverted"));
+        }
     }
 
     @Override
@@ -115,6 +129,11 @@ public abstract class AbstractConfigurableBlockEntity extends BlockEntity implem
             configs.put(type,configType);
         }
         pTag.put("SideConfigs", configs);
+        CompoundTag redstoneConfig = new CompoundTag();
+        redstoneConfig.putString("signalBehavior", this.signalBehavior.name());
+        redstoneConfig.putString("comparatorResource", this.comparatorBehavior.resourceType());
+        redstoneConfig.putBoolean("comparatorInverted", this.comparatorBehavior.inverted());
+        pTag.put("RedstoneConfig", redstoneConfig);
         super.saveAdditional(pTag, pRegistries);
     }
 
@@ -169,5 +188,24 @@ public abstract class AbstractConfigurableBlockEntity extends BlockEntity implem
             return (FluidResourceHandler) this.configMap.get("fluids");
 
         return null;
+    }
+
+    public void updateRedstoneConfig(SignalBehavior signalBehavior, ComparatorBehavior comparatorBehavior) {
+        this.signalBehavior = signalBehavior;
+        this.comparatorBehavior = comparatorBehavior;
+        this.setChanged();
+        this.notifyClients();
+    }
+
+    public SignalBehavior getSignalBehavior() {
+        return this.signalBehavior;
+    }
+
+    public ComparatorBehavior getComparatorBehavior() {
+        return this.comparatorBehavior;
+    }
+
+    public Set<String> getAvailableResources() {
+        return this.configMap.keySet();
     }
 }

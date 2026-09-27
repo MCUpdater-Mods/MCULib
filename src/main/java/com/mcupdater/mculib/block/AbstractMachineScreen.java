@@ -34,21 +34,29 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
         this.registerWidgets();
         this.configPanel = new ConfigPanel(this.menu, this.leftPos, this.topPos, this.imageWidth, this.imageHeight);
         this.configPanel.setVisible(false);
+        this.redstonePanel = new RedstonePanel(this.menu, this.leftPos, this.topPos, this.imageWidth, this.imageHeight);
+        this.redstonePanel.setVisible(false);
         this.configTab = this.addRenderableWidget(new TabConfig(this.leftPos - 22, this.topPos + 2,22,22, (mouseX, mouseY) -> {
             this.configPanel.setVisible(!this.configPanel.isVisible());
             this.redstonePanel.setVisible(false);
-            for (AbstractWidget widget : extraWidgets) {
-                widget.visible = !widget.visible;
-            }
+            this.redstoneTab.deselect();
+            updateWidgetStates();
         }));
         this.configTab.setChild(this.configPanel);
-        this.redstoneTab = this.addRenderableWidget(new TabRedstone(this.leftPos - 22, this.topPos + 2 + 22, 22, 22, (mouseX, mouseY) -> {
+        this.redstoneTab = this.addRenderableWidget(new TabRedstone(this.leftPos - 22, this.topPos + 2 + 23, 22, 22, (mouseX, mouseY) -> {
             this.redstonePanel.setVisible(!this.redstonePanel.isVisible());
             this.configPanel.setVisible(false);
-            for (AbstractWidget widget : extraWidgets) {
-                widget.visible = !widget.visible;
-            }
+            this.configTab.deselect();
+            updateWidgetStates();
         }));
+        this.redstoneTab.setChild(this.redstonePanel);
+    }
+
+    protected void updateWidgetStates() {
+        var panelShown = this.configPanel.isVisible() || this.redstonePanel.isVisible();
+        for (AbstractWidget widget : extraWidgets) {
+            widget.visible = !panelShown;
+        }
     }
 
     public void registerWidgets() {
@@ -110,7 +118,7 @@ public abstract class AbstractMachineScreen<MACHINE extends AbstractMachineBlock
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int pMouseX, int pMouseY) {
-        if (!this.configPanel.isVisible()) {
+        if (!(this.configPanel.isVisible() || this.redstonePanel.isVisible())) {
             super.renderLabels(guiGraphics, pMouseX, pMouseY);
         }
     }

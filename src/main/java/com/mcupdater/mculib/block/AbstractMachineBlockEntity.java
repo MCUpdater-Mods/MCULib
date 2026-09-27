@@ -1,15 +1,19 @@
 package com.mcupdater.mculib.block;
 
 import com.mcupdater.mculib.capabilities.EnergyResourceHandler;
+import com.mcupdater.mculib.redstone.ComparatorBehavior;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
+import static com.mcupdater.mculib.block.AbstractMachineBlock.ENABLED;
 import static com.mcupdater.mculib.setup.Config.OVERDRIVE_ENABLED;
 
 public abstract class AbstractMachineBlockEntity extends AbstractConfigurableBlockEntity implements IMachineGuiProvider, IPoweredMachine {
@@ -24,6 +28,7 @@ public abstract class AbstractMachineBlockEntity extends AbstractConfigurableBlo
         this.powerUse = powerUse;
         this.multiplier = multiplier;
         this.configMap.put("power", new EnergyResourceHandler(this.level, energyCapacity, maxTransfer, true));
+        this.comparatorBehavior = new ComparatorBehavior("power", false);
     }
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pBlockState) {
@@ -43,7 +48,7 @@ public abstract class AbstractMachineBlockEntity extends AbstractConfigurableBlo
             }
         }
         for (int i = 0; i < cycles; i++) {
-            if (energyStorage.getStoredEnergy() >= this.powerUse) {
+            if (energyStorage.getStoredEnergy() >= this.powerUse && pBlockState.getValue(ENABLED)) {
                 if (this.performWork()) {
                     energyStorage.getInternalHandler().extractEnergy(this.powerUse, false);
                     boolean currentState = pBlockState.getValue((AbstractMachineBlock.ACTIVE));
@@ -69,6 +74,13 @@ public abstract class AbstractMachineBlockEntity extends AbstractConfigurableBlo
             }
         }
         super.tick();
+    }
+
+    public void dropExperience() {
+        if (this.level instanceof ServerLevel serverLevel) {
+            int exp = this.extractExperience();
+            ExperienceOrb.award(serverLevel, this.getBlockPos().getBottomCenter(), exp);
+        }
     }
 
     protected abstract boolean performWork();

@@ -8,6 +8,16 @@
   "gui.mculib.fluids": "Fluids",
   "gui.mculib.automated": "Automated",
   "gui.mculib.redstone": "Redstone",
+  "gui.mculib.redstone.behavior.tooltip": "Redstone Behavior",
+  "gui.mculib.redstone.behavior.ignore": "Ignore",
+  "gui.mculib.redstone.behavior.required": "Required",
+  "gui.mculib.redstone.behavior.inverted": "Inverted",
+  "gui.mculib.redstone.comparator.tooltip": "Comparator Behavior",
+  "gui.mculib.redstone.comparator.items": "Items",
+  "gui.mculib.redstone.comparator.fluids": "Fluids",
+  "gui.mculib.redstone.comparator.power": "Energy",
+  "gui.mculib.redstone.comparator.normal": "Normal",
+  "gui.mculib.redstone.comparator.inverted": "Inverted",
   "side.closed.tooltip": "Closed",
   "side.passive.tooltip": "Open",
   "side.automated.tooltip": "Automated",
@@ -16,5 +26,6 @@
   "mculib.configuration.general": "General Settings",
   "mculib.configuration.overdrive": "Overdrive",
   "mculib.configuration.slots_per_tick": "Slots per tick",
-  "mculib.configuration.debug": "Debug"
+  "mculib.configuration.debug": "Debug",
+  "gui.mculib.redstone.comparator.highlow": "High/Low"
 }
